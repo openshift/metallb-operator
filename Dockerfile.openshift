@@ -13,6 +13,7 @@ COPY controllers/ controllers/
 COPY pkg/ pkg/
 COPY vendor/ vendor/
 COPY bindata/deployment/ bindata/deployment/
+COPY bindata/ocpdeployment/ bindata/ocpdeployment/
 COPY bindata/configuration/address-pool/ bindata/configuration/address-pool/
 
 # Build
@@ -20,9 +21,12 @@ RUN CGO_ENABLED=0 GO111MODULE=on go build -a -mod=vendor -o manager main.go
 
 FROM registry.ci.openshift.org/ocp/builder:rhel-8-base-openshift-4.9
 
+ENV OCP_PLATFORM=1
+
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/bindata/deployment /bindata/deployment
+COPY --from=builder /workspace/bindata/ocpdeployment /bindata/ocpdeployment
 COPY --from=builder /workspace/bindata/configuration/address-pool/ /bindata/configuration/address-pool
 
 ENTRYPOINT ["/manager"]
