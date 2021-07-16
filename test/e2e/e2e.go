@@ -621,9 +621,6 @@ var _ = Describe("validation", func() {
 	})
 })
 
-	})
-})
-
 func checkConditionStatus(instance *metallbv1alpha1.MetalLB) string {
 	availableStatus := false
 	degradedStatus := false
