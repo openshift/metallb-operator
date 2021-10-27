@@ -49,9 +49,6 @@ spec:
                 description: AutoAssign flag used to prevent MetallB from automatic
                   allocation for a pool.
                 type: boolean
-              name:
-                description: Address Pool Name
-                type: string
               protocol:
                 description: Protocol can be used to select how the announcement is
                   done,
