@@ -65,8 +65,8 @@ metadata:
     description: An operator for deploying MetalLB on a kubernetes cluster.
     operators.operatorframework.io/builder: operator-sdk-v1.8.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-    repository: https://github.com/metallb/metallb-operator
-    support: Community
+    repository: https://github.com/openshift/metallb-operator
+    support: Red Hat
   labels:
     operatorframework.io/arch.amd64: supported
   name: metallb-operator.v4.9.0
@@ -376,11 +376,11 @@ spec:
     olm-status-descriptors: metallb-operator.v4.9.0
   links:
   - name: MetalLB Operator
-    url: https://github.com/metallb/metallb-operator
+    url: https://github.com/openshift/metallb-operator
   maintainers:
   - email: rbryant@redhat.com
     name: Russell Bryant
   maturity: alpha
   provider:
-    name: Community
+    name: Red Hat
   version: 4.9.0
