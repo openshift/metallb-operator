@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	v1 "k8s.io/api/core/v1"
 	"os"
 	"time"
 
@@ -64,6 +65,58 @@ var _ = Describe("MetalLB Controller", func() {
 			Expect(speakerDaemonSet).NotTo(BeZero())
 			Expect(len(speakerDaemonSet.Spec.Template.Spec.Containers)).To(BeNumerically(">", 0))
 			Expect(speakerDaemonSet.Spec.Template.Spec.Containers[0].Image).To(Equal(speakerImage))
+
+			By("Specify the SpeakerNodeSelector")
+			metallb.Spec.SpeakerNodeSelector = map[string]string{"node-role.kubernetes.io/worker": "true"}
+			err = k8sClient.Update(context.TODO(), metallb)
+			Expect(err).NotTo(HaveOccurred())
+
+			speakerDaemonSet = &appsv1.DaemonSet{}
+			Eventually(func() map[string]string {
+				err := k8sClient.Get(context.TODO(), types.NamespacedName{Name: consts.MetalLBDaemonsetName, Namespace: MetalLBTestNameSpace}, speakerDaemonSet)
+				if err != nil {
+					return nil
+				}
+				return speakerDaemonSet.Spec.Template.Spec.NodeSelector
+			}, 2*time.Second, 200*time.Millisecond).Should(Equal(metallb.Spec.SpeakerNodeSelector))
+			Expect(speakerDaemonSet).NotTo(BeZero())
+			Expect(len(speakerDaemonSet.Spec.Template.Spec.Containers)).To(BeNumerically(">", 0))
+			// Reset nodeSelector configuration
+			metallb.Spec.SpeakerNodeSelector = map[string]string{}
+			err = k8sClient.Update(context.TODO(), metallb)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Specify the speaker's Tolerations")
+			metallb.Spec.SpeakerTolerations = []v1.Toleration{
+				{
+					Key:      "example1",
+					Operator: v1.TolerationOpExists,
+					Effect:   v1.TaintEffectNoExecute,
+				},
+				{
+					Key:      "example2",
+					Operator: v1.TolerationOpExists,
+					Effect:   v1.TaintEffectNoExecute,
+				},
+			}
+
+			err = k8sClient.Update(context.TODO(), metallb)
+			Expect(err).NotTo(HaveOccurred())
+
+			speakerDaemonSet = &appsv1.DaemonSet{}
+			Eventually(func() []v1.Toleration {
+				err := k8sClient.Get(context.TODO(), types.NamespacedName{Name: consts.MetalLBDaemonsetName, Namespace: MetalLBTestNameSpace}, speakerDaemonSet)
+				if err != nil {
+					return nil
+				}
+				return speakerDaemonSet.Spec.Template.Spec.Tolerations
+			}, 2*time.Second, 200*time.Millisecond).Should(Equal(metallb.Spec.SpeakerTolerations))
+			Expect(speakerDaemonSet).NotTo(BeZero())
+			Expect(len(speakerDaemonSet.Spec.Template.Spec.Containers)).To(BeNumerically(">", 0))
+			// Reset toleration configuration
+			metallb.Spec.SpeakerTolerations = nil
+			err = k8sClient.Update(context.TODO(), metallb)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })
