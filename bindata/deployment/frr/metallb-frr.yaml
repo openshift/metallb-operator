@@ -58,8 +58,8 @@ spec:
   hostNetwork: true
   hostPID: false
   hostPorts:
-    - max: 7472
-      min: 7472
+    - max: {{.MetricsPort}}
+      min: {{.MetricsPort}}
     - max: 7946
       min: 7946
   privileged: true
@@ -285,9 +285,9 @@ spec:
           image: '{{.FRRImage}}'
           command: ["/etc/frr_metrics/frr-metrics"]
           args:
-            - --metrics-port=7473
+            - --metrics-port={{.FRRMetricsPort}}
           ports:
-            - containerPort: 7473
+            - containerPort: {{.FRRMetricsPort}}
               name: monitoring
           volumeMounts:
             - name: frr-sockets
@@ -297,7 +297,7 @@ spec:
             - name: metrics
               mountPath: /etc/frr_metrics
         - args:
-            - --port=7472
+            - --port={{.MetricsPort}}
             - --config=config
             - --log-level=info
           env:
@@ -342,7 +342,7 @@ spec:
             - name: reloader
               mountPath: /etc/frr_reloader
           ports:
-            - containerPort: 7472
+            - containerPort: {{.MetricsPort}}
               name: monitoring
             - containerPort: 7946
               name: memberlist-tcp
@@ -383,13 +383,13 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --logtostderr
-            - --secure-listen-address=:27473
+            - --secure-listen-address=:{{.FRRMetricsPortHttps}}
             - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-            - --upstream=http://127.0.0.1:7473/
+            - --upstream=http://127.0.0.1:{{.FRRMetricsPort}}/
             - --tls-private-key-file=/etc/metrics/tls.key
             - --tls-cert-file=/etc/metrics/tls.crt
           ports:
-            - containerPort: 27473
+            - containerPort: {{.FRRMetricsPortHttps}}
               name: https-metrics
           resources:
             requests:
@@ -405,13 +405,13 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --logtostderr
-            - --secure-listen-address=:27472
+            - --secure-listen-address=:{{.MetricsPortHttps}}
             - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-            - --upstream=http://$(METALLB_HOST):7472/
+            - --upstream=http://$(METALLB_HOST):{{.MetricsPort}}/
             - --tls-private-key-file=/etc/metrics/tls.key
             - --tls-cert-file=/etc/metrics/tls.crt
           ports:
-            - containerPort: 27472
+            - containerPort: {{.MetricsPortHttps}}
               name: https-metrics
           env:
             - name: METALLB_HOST
@@ -456,7 +456,7 @@ spec:
   template:
     metadata:
       annotations:
-        prometheus.io/port: '7472'
+        prometheus.io/port: '{{.MetricsPort}}'
         prometheus.io/scrape: 'true'
       labels:
         app: metallb
@@ -464,7 +464,7 @@ spec:
     spec:
       containers:
         - args:
-            - --port=7472
+            - --port={{.MetricsPort}}
             - --config=config
             - --log-level=info
           env:
@@ -475,7 +475,7 @@ spec:
           image: '{{.ControllerImage}}'
           name: controller
           ports:
-            - containerPort: 7472
+            - containerPort: {{.MetricsPort}}
               name: monitoring
           livenessProbe:
             httpGet:
@@ -509,13 +509,13 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --logtostderr
-            - --secure-listen-address=:27472
+            - --secure-listen-address=:{{.MetricsPortHttps}}
             - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-            - --upstream=http://$(METALLB_HOST):7472/
+            - --upstream=http://$(METALLB_HOST):{{.MetricsPort}}/
             - --tls-private-key-file=/etc/metrics/tls.key
             - --tls-cert-file=/etc/metrics/tls.crt
           ports:
-            - containerPort: 27472
+            - containerPort: {{.MetricsPortHttps}}
               name: https-metrics
           env:
             - name: METALLB_HOST

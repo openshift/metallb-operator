@@ -49,11 +49,11 @@ spec:
   clusterIP: None
   ports:
     - name: speaker-metrics
-      port: 7472
-      targetPort: 27472
+      port: {{.MetricsPort}}
+      targetPort: {{.MetricsPortHttps}}
     - name: frr-metrics
-      port: 7473
-      targetPort: 27473
+      port: {{.FRRMetricsPort}}
+      targetPort: {{.FRRMetricsPortHttps}}
   sessionAffinity: None
   type: ClusterIP
 ---
@@ -99,7 +99,7 @@ spec:
   clusterIP: None
   ports:
     - name: controller-metrics
-      port: 7472
-      targetPort: 27472
+      port: {{.MetricsPort}}
+      targetPort: {{.MetricsPortHttps}}
   sessionAffinity: None
   type: ClusterIP
