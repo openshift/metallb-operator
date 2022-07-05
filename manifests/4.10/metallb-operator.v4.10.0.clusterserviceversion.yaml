@@ -445,6 +445,16 @@ spec:
                   value: "true"
                 - name: DEPLOY_PODMONITORS
                   value: "false"
+                - name: METRICS_PORT
+                  value: "29150"
+                - name: HTTPS_METRICS_PORT
+                  value: "9120"
+                - name: FRR_METRICS_PORT
+                  value: "29151"
+                - name: FRR_HTTPS_METRICS_PORT
+                  value: "9121"
+                - name: MEMBER_LIST_BIND_PORT
+                  value: "9122"
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
