@@ -48,7 +48,7 @@ spec:
               myASN:
                 description: AS number to use for the local end of the session.
                 format: int32
-                maximum: 65535
+                maximum: 4294967295
                 minimum: 0
                 type: integer
               nodeSelectors:
@@ -87,7 +87,7 @@ spec:
               peerASN:
                 description: AS number to expect from the remote end of the session.
                 format: int32
-                maximum: 65535
+                maximum: 4294967295
                 minimum: 0
                 type: integer
               peerAddress:
@@ -155,7 +155,7 @@ spec:
               myASN:
                 description: AS number to use for the local end of the session.
                 format: int32
-                maximum: 65535
+                maximum: 4294967295
                 minimum: 0
                 type: integer
               nodeSelectors:
@@ -218,18 +218,18 @@ spec:
                   BGP Peer
                 properties:
                   name:
-                    description: Name is unique within a namespace to reference a
+                    description: name is unique within a namespace to reference a
                       secret resource.
                     type: string
                   namespace:
-                    description: Namespace defines the space within which the secret
+                    description: namespace defines the space within which the secret
                       name must be unique.
                     type: string
                 type: object
               peerASN:
                 description: AS number to expect from the remote end of the session.
                 format: int32
-                maximum: 65535
+                maximum: 4294967295
                 minimum: 0
                 type: integer
               peerAddress:
