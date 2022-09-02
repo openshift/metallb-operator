@@ -237,21 +237,21 @@ var _ = Describe("metallb", func() {
 	})
 
 	Context("MetalLB configured extra config parameters", func() {
-		var correct_metallb *metallbv1beta1.MetalLB
+		//var correct_metallb *metallbv1beta1.MetalLB
 		var priorityClass *schv1.PriorityClass
 		priorityClassName := "high-priority"
 		BeforeEach(func() {
-			var err error
-			correct_metallb, err = metallbutils.Get(OperatorNameSpace, UseMetallbResourcesFromFile)
-			Expect(err).ToNot(HaveOccurred())
+			//var err error
+			//correct_metallb, err = metallbutils.Get(OperatorNameSpace, UseMetallbResourcesFromFile)
+			//Expect(err).ToNot(HaveOccurred())
 			priorityClass = metallbutils.NewPriorityClass(priorityClassName, 10000)
 
 			Expect(testclient.Client.Create(context.Background(), priorityClass)).Should(Succeed())
 		})
 
 		AfterEach(func() {
-			metallbutils.Delete(correct_metallb)
-			metallbutils.DeletePriorityClass(priorityClass)
+			//metallbutils.Delete(correct_metallb)
+			//metallbutils.DeletePriorityClass(priorityClass)
 		})
 
 		It("set with additional parameters", func() {
@@ -334,12 +334,12 @@ var _ = Describe("metallb", func() {
 				Expect(daemonset.Spec.Template.Spec.PriorityClassName).To(Equal(priorityClassName))
 				Expect(daemonset.Spec.Template.Annotations["test"]).To(Equal("e2e"))
 
-				metallbutils.Delete(metallb)
+				//metallbutils.Delete(metallb)
 			})
 		})
 	})
 
-	Context("Update MetalLB resources", func() {
+	/*Context("Update MetalLB resources", func() {
 		var metallb *metallbv1beta1.MetalLB
 		var priorityClass *schv1.PriorityClass
 		priorityClassName := "high-priority"
@@ -461,5 +461,5 @@ var _ = Describe("metallb", func() {
 				}, metallbutils.DeployTimeout, metallbutils.Interval).Should(BeTrue())
 			})
 		})
-	})
+	})*/
 })
