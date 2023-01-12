@@ -279,6 +279,7 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.8.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     operatorframework.io/suggested-namespace: metallb-system
+    operators.openshift.io/infrastructure-features: '["disconnected"]'
     repository: https://github.com/openshift/metallb-operator
     support: Red Hat
   labels:
