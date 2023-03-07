@@ -492,7 +492,7 @@ spec:
                 - patch
                 - update
                 - watch
-          serviceAccountName: default
+          serviceAccountName: manager-account
         - rules:
             - apiGroups:
                 - authentication.k8s.io
@@ -590,6 +590,7 @@ spec:
                       - mountPath: /tmp/k8s-webhook-server/serving-certs
                         name: cert
                         readOnly: true
+                serviceAccountName: manager-account
                 terminationGracePeriodSeconds: 10
                 volumes:
                   - name: cert
@@ -764,25 +765,13 @@ spec:
               resources:
                 - configmaps
               verbs:
+                - create
+                - delete
                 - get
                 - list
-                - watch
-                - create
-                - update
                 - patch
-                - delete
-            - apiGroups:
-                - coordination.k8s.io
-              resources:
-                - leases
-              verbs:
-                - get
-                - list
-                - watch
-                - create
                 - update
-                - patch
-                - delete
+                - watch
             - apiGroups:
                 - ""
               resources:
@@ -813,7 +802,19 @@ spec:
                 - patch
                 - update
                 - watch
-          serviceAccountName: default
+            - apiGroups:
+                - coordination.k8s.io
+              resources:
+                - leases
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+          serviceAccountName: manager-account
         - rules:
             - apiGroups:
                 - ""
