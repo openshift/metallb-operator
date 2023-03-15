@@ -434,7 +434,7 @@ spec:
           - patch
           - update
           - watch
-        serviceAccountName: default
+        serviceAccountName: manager-account
       - rules:
         - apiGroups:
           - ""
@@ -550,6 +550,7 @@ spec:
                   - mountPath: /tmp/k8s-webhook-server/serving-certs
                     name: cert
                     readOnly: true
+              serviceAccountName: manager-account
               terminationGracePeriodSeconds: 10
               volumes:
                 - name: cert
@@ -792,7 +793,7 @@ spec:
           - update
           - patch
           - delete
-        serviceAccountName: default
+        serviceAccountName: manager-account
       - rules:
         - apiGroups:
             - ""
