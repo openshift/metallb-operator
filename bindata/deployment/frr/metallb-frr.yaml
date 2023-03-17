@@ -511,17 +511,12 @@ spec:
             - --logtostderr
             - --secure-listen-address=:{{.MetricsPortHttps}}
             - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-            - --upstream=http://$(METALLB_HOST):{{.MetricsPort}}/
+            - --upstream=http://127.0.0.1:{{.MetricsPort}}/
             - --tls-private-key-file=/etc/metrics/tls.key
             - --tls-cert-file=/etc/metrics/tls.crt
           ports:
             - containerPort: {{.MetricsPortHttps}}
               name: https-metrics
-          env:
-            - name: METALLB_HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
           resources:
             requests:
               cpu: 10m
