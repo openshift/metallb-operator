@@ -64,7 +64,7 @@ var _ = Describe("metallb", func() {
 				Expect(daemonset.OwnerReferences).ToNot(BeNil())
 				Expect(daemonset.OwnerReferences[0].Kind).To(Equal("MetalLB"))
 
-				metallbutils.Delete(metallb)
+				metallbutils.DeleteAndCheck(metallb)
 			}
 		})
 
@@ -195,7 +195,7 @@ var _ = Describe("metallb", func() {
 
 			AfterEach(func() {
 				metallbutils.Delete(incorrect_metallb)
-				metallbutils.Delete(correct_metallb)
+				metallbutils.DeleteAndCheck(correct_metallb)
 			})
 			It("should have correct statuses", func() {
 				By("checking MetalLB resource status", func() {
