@@ -299,7 +299,7 @@ spec:
         - args:
             - --port={{.MetricsPort}}
             - --config=config
-            - --log-level=info
+            - --log-level={{.LogLevel}}
           env:
             - name: FRR_CONFIG_FILE
               value: /etc/frr_reloader/frr.conf
