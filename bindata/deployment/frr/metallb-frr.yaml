@@ -299,7 +299,7 @@ spec:
         - args:
             - --port={{.MetricsPort}}
             - --config=config
-            - --log-level=info
+            - --log-level={{.LogLevel}}
           env:
             - name: FRR_CONFIG_FILE
               value: /etc/frr_reloader/frr.conf
@@ -310,8 +310,8 @@ spec:
             # FRR_LOGGING_LEVEL used to set logging level for all running frr processes.
             # Possible settings are :-
             #  informational, warning, errors and debugging.
-            - name: FRR_LOGGING_LEVEL
-              value: informational
+            # - name: FRR_LOGGING_LEVEL
+            #  value: informational
             - name: METALLB_NODE_NAME
               valueFrom:
                 fieldRef:

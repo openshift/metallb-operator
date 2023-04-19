@@ -158,6 +158,11 @@ func (r *MetalLBReconciler) syncMetalLBResources(config *metallbv1beta1.MetalLB)
 	data.Data["KubeRbacProxy"] = os.Getenv("KUBE_RBAC_PROXY_IMAGE")
 	data.Data["DeployKubeRbacProxies"] = os.Getenv("DEPLOY_KUBE_RBAC_PROXIES") == "true"
 
+	data.Data["LogLevel"] = metallbv1beta1.LogLevelInfo
+	if config.Spec.LogLevel != "" {
+		data.Data["LogLevel"] = config.Spec.LogLevel
+	}
+
 	var err error
 	data.Data["MetricsPort"], err = valueWithDefault("METRICS_PORT", 7472)
 	if err != nil {
