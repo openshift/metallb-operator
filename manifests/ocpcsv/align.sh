@@ -4,7 +4,7 @@ export OPERATOR_SDK=_cache/operator-sdk
 make operator-sdk
 export KUSTOMIZE=_cache/kustomize
 make kustomize
-CSV_VERSION=4.13.0
+CSV_VERSION=4.14.0
 
 # we need to save and restore as operatorsdk works with the local bundle.Dockerfile
 

@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: webhook-server
-        image: quay.io/openshift/origin-metallb:4.13
+        image: quay.io/openshift/origin-metallb:4.14
         securityContext:
           $patch: delete
         env:
