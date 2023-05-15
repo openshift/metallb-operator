@@ -41,7 +41,11 @@ func TestValidation(t *testing.T) {
 
 	if *junitPath != "" {
 		junitFile := path.Join(*junitPath, "validation_junit.xml")
-		reporterConfig.JUnitReport = junitFile
+		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
+			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
+			OmitLeafNodeType:          true,
+			OmitSuiteSetupNodes:       true,
+		})
 	}
 
 	if *reportPath != "" {
