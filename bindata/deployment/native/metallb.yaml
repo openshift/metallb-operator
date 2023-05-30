@@ -124,11 +124,8 @@ spec:
             #  value: "7946"
             - name: METALLB_ML_LABELS
               value: "app=metallb,component=speaker"
-            - name: METALLB_ML_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: memberlist
-                  key: secretkey
+            - name: METALLB_ML_SECRET_KEY_PATH
+              value: /etc/ml_secret_key
           image: '{{.SpeakerImage}}'
           name: speaker
           ports:
@@ -167,6 +164,10 @@ spec:
             readOnlyRootFilesystem: true
           command:
             - /speaker
+          volumeMounts:
+            - mountPath: /etc/ml_secret_key
+              name: memberlist
+              readOnly: true
       hostNetwork: true
       nodeSelector:
         kubernetes.io/os: linux
@@ -176,6 +177,11 @@ spec:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
           operator: Exists
+      volumes:
+          - name: memberlist
+            secret:
+              secretName: memberlist
+              defaultMode: 420
 ---
 apiVersion: apps/v1
 kind: Deployment

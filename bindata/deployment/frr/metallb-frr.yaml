@@ -211,6 +211,10 @@ spec:
           emptyDir: {}
         - name: metrics
           emptyDir: {}
+        - name: memberlist
+          secret:
+            secretName: memberlist
+            defaultMode: 420
         {{ if .DeployKubeRbacProxies }}
         - name: speaker-certs
           secret:
@@ -331,16 +335,16 @@ spec:
             #  value: "7946"
             - name: METALLB_ML_LABELS
               value: "app=metallb,component=speaker"
-            - name: METALLB_ML_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: memberlist
-                  key: secretkey
+            - name: METALLB_ML_SECRET_KEY_PATH
+              value: /etc/ml_secret_key
           image: '{{.SpeakerImage}}'
           name: speaker
           volumeMounts:
             - name: reloader
               mountPath: /etc/frr_reloader
+            - name: memberlist
+              mountPath: /etc/ml_secret_key
+              readOnly: true
           ports:
             - containerPort: {{.MetricsPort}}
               name: monitoring
