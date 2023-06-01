@@ -196,11 +196,8 @@ spec:
                   fieldPath: status.podIP
             - name: METALLB_ML_LABELS
               value: app=metallb,component=speaker
-            - name: METALLB_ML_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: secretkey
-                  name: memberlist
+            - name: METALLB_ML_SECRET_KEY_PATH
+              value: /etc/ml_secret_key
           image: '{{.SpeakerImage}}'
           livenessProbe:
             failureThreshold: 3
@@ -237,6 +234,10 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /etc/ml_secret_key
+              name: memberlist
+              readOnly: true
           command:
             - /speaker
       hostNetwork: true
@@ -251,3 +252,8 @@ spec:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
           operator: Exists
+      volumes:
+        - name: memberlist
+          secret:
+            secretName: memberlist
+            defaultMode: 420
