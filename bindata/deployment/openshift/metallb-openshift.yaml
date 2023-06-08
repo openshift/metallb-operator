@@ -336,9 +336,6 @@ spec:
               name: frr-sockets
             - mountPath: /etc/frr
               name: frr-conf
-            - mountPath: /etc/ml_secret_key
-              name: memberlist
-              readOnly: true
         - command:
             - /etc/frr_reloader/frr-reloader.sh
           image: '{{.FRRImage}}'
@@ -432,6 +429,9 @@ spec:
           volumeMounts:
             - mountPath: /etc/frr_reloader
               name: reloader
+            - mountPath: /etc/ml_secret_key
+              name: memberlist
+              readOnly: true
           command:
             - /speaker
         {{ if .DeployKubeRbacProxies }}
