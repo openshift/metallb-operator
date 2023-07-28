@@ -1073,19 +1073,6 @@ spec:
     type: ValidatingAdmissionWebhook
     webhookPath: /validate-metallb-io-v1beta2-bgppeer
   - admissionReviewVersions:
-    - v1alpha1
-    - v1beta1
-    containerPort: 443
-    conversionCRDs:
-    - addresspools.metallb.io
-    - bgppeers.metallb.io
-    deploymentName: metallb-operator-webhook-server
-    generateName: caddresspoolsbgppeers.kb.io
-    sideEffects: None
-    targetPort: 9443
-    type: ConversionWebhook
-    webhookPath: /convert
-  - admissionReviewVersions:
     - v1
     containerPort: 443
     deploymentName: metallb-operator-webhook-server
@@ -1165,3 +1152,29 @@ spec:
     targetPort: 9443
     type: ValidatingAdmissionWebhook
     webhookPath: /validate-metallb-io-v1beta1-metallb
+  - type: ConversionWebhook
+    admissionReviewVersions:
+    - v1beta1                                                                                
+    - v1beta2
+    containerPort: 444
+    targetPort: 9443
+    deploymentName: metallb-operator-webhook-server
+    generateName: metallbconversionpeer.metallb.io
+    sideEffects: None
+    webhookPath: /convert
+    conversionCRDs:
+    - bgppeers.metallb.io
+    failurePolicy: Fail
+  - admissionReviewVersions:
+    - v1alpha1
+    - v1beta1
+    containerPort: 443
+    conversionCRDs:
+    - addresspools.metallb.io
+    deploymentName: metallb-operator-webhook-server
+    generateName: caddresspools.kb.io
+    sideEffects: None
+    targetPort: 9443
+    type: ConversionWebhook
+    webhookPath: /convert
+
