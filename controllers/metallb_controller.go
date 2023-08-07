@@ -101,7 +101,9 @@ func (r *MetalLBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		logger.Error(err, "Invalid MetalLB resource name", "name", req.Name)
 		if err := status.Update(context.TODO(), r.Client, instance, status.ConditionDegraded, "IncorrectMetalLBResourceName", fmt.Sprintf("Incorrect MetalLB resource name: %s", req.Name)); err != nil {
 			logger.Error(err, "Failed to update metallb status", "Desired status", status.ConditionDegraded)
+			return ctrl.Result{}, nil // Return success to avoid requeue
 		}
+		logger.Info("updated metallb status successfully", "condition", status.ConditionDegraded, "resource name", req.Name)
 		return ctrl.Result{}, nil // Return success to avoid requeue
 	}
 
@@ -109,16 +111,18 @@ func (r *MetalLBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if condition != "" {
 		errorMsg, wrappedErrMsg := condition, ""
 		if err != nil {
-			errorMsg = err.Error()
+			errorMsg = "internal error"
 			if errors.Unwrap(err) != nil {
 				wrappedErrMsg = errors.Unwrap(err).Error()
 			}
 		}
 		if err := status.Update(context.TODO(), r.Client, instance, condition, errorMsg, wrappedErrMsg); err != nil {
-			logger.Error(err, "Failed to update metallb status", "Desired status", status.ConditionAvailable)
+			logger.Error(err, "Failed to update metallb status", "Desired status", condition)
+			return ctrl.Result{}, err
 		}
+		logger.Info("updated metallb status successfully", "condition", condition, "resource name", req.Name)
 	}
-	return result, err
+	return result, nil
 }
 
 func (r *MetalLBReconciler) reconcileResource(ctx context.Context, req ctrl.Request, instance *metallbv1beta1.MetalLB) (ctrl.Result, string, error) {
