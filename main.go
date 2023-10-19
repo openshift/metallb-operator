@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"os"
 
@@ -32,6 +33,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	metallbv1alpha1 "github.com/metallb/metallb-operator/api/v1alpha1"
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
@@ -69,6 +71,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	withWebhookHTTP2 := flag.Bool("webhook-http2", false, "enables http2 for the webhook endpoint")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
@@ -86,6 +89,7 @@ func main() {
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "metallb.io.metallboperator",
 		Namespace:          watchNamespace,
+		WebhookServer:      webhookServer(9443, *withWebhookHTTP2),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -147,4 +151,17 @@ func checkEnvVar(name string) string {
 		os.Exit(1)
 	}
 	return value
+}
+
+func webhookServer(port int, withHTTP2 bool) *webhook.Server {
+	disableHTTP2 := func(c *tls.Config) {
+		if withHTTP2 {
+			return
+		}
+		c.NextProtos = []string{"http/1.1"}
+	}
+	return &webhook.Server{
+		Port:    port,
+		TLSOpts: []func(config *tls.Config){disableHTTP2},
+	}
 }
