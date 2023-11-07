@@ -56,17 +56,17 @@ test: generate fmt vet manifests ## Run unit and integration tests
 
 all: manager ## Default make target if no options specified
 
-test-validation: generate fmt vet manifests  ## Run validation tests
+test-validation:  ## Run validation tests
 	rm -rf ${VALIDATION_TESTS_REPORTS_PATH}
 	mkdir -p ${VALIDATION_TESTS_REPORTS_PATH}
 	USE_LOCAL_RESOURCES=true go test --tags=validationtests -v ./test/e2e/validation -ginkgo.v -junit $(VALIDATION_TESTS_REPORTS_PATH) -report $(VALIDATION_TESTS_REPORTS_PATH)
 
-test-functional: generate fmt vet manifests  ## Run e2e tests
+test-functional:  ## Run e2e tests
 	rm -rf ${TESTS_REPORTS_PATH}
 	mkdir -p ${TESTS_REPORTS_PATH}
 	USE_LOCAL_RESOURCES=true go test --tags=e2etests -v ./test/e2e/functional -ginkgo.v -junit $(TESTS_REPORTS_PATH) -report $(TESTS_REPORTS_PATH)
 
-test-e2e: generate fmt vet manifests test-validation test-functional  ## Run e2e tests
+test-e2e:test-validation test-functional  ## Run e2e tests
 
 manager: generate fmt vet  ## Build manager binary
 	go build -ldflags "-X main.build=$$(git rev-parse HEAD)" -o bin/manager main.go
@@ -157,14 +157,9 @@ build-and-push-bundle-images: docker-build docker-push  ## Generate and push bun
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
+	pushd /tmp
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
+	popd
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
