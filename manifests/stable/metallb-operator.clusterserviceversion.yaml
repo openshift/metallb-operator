@@ -277,6 +277,13 @@ metadata:
     olm.skipRange: ">=4.8.0 <4.12.0"
     description: An operator for deploying MetalLB on a kubernetes cluster.
     operators.operatorframework.io/builder: operator-sdk-v1.8.0+git
+    features.operators.openshift.io/disconnected: "true"
+    features.operators.openshift.io/fips-compliant: "true"
+    features.operators.openshift.io/proxy-aware: "false"
+    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/token-auth-aws: "false"
+    features.operators.openshift.io/token-auth-azure: "false"
+    features.operators.openshift.io/token-auth-gcp: "false"
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     operatorframework.io/suggested-namespace: metallb-system
     repository: https://github.com/openshift/metallb-operator
@@ -721,7 +728,7 @@ spec:
           resources:
             - subjectaccessreviews
           verbs:
-            - create       
+            - create
         serviceAccountName: controller
       - rules:
         - apiGroups:
@@ -1093,4 +1100,3 @@ spec:
       targetPort: 9443
       type: ConversionWebhook
       webhookPath: /convert
-
