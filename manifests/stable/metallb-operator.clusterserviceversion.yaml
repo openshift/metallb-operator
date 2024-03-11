@@ -279,7 +279,13 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.8.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     operatorframework.io/suggested-namespace: metallb-system
-    operators.openshift.io/infrastructure-features: '["disconnected"]'
+    features.operators.openshift.io/disconnected: "true"
+    features.operators.openshift.io/fips-compliant: "true"
+    features.operators.openshift.io/proxy-aware: "false"
+    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/token-auth-aws: "false"
+    features.operators.openshift.io/token-auth-azure: "false"
+    features.operators.openshift.io/token-auth-gcp: "false"
     repository: https://github.com/openshift/metallb-operator
     support: Red Hat
   labels:
@@ -724,7 +730,7 @@ spec:
           resources:
             - subjectaccessreviews
           verbs:
-            - create       
+            - create
         serviceAccountName: controller
       - rules:
         - apiGroups:
@@ -1096,4 +1102,3 @@ spec:
       targetPort: 9443
       type: ConversionWebhook
       webhookPath: /convert
-
