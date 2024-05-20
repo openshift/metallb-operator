@@ -991,11 +991,13 @@ spec:
   - name: MetalLB Operator
     url: https://github.com/openshift/metallb-operator
   maintainers:
-  - email: rbryant@redhat.com
-    name: Russell Bryant
+  - email: fpaoline@redhat.com
+    name: Federico Paolinelli
+  - email: obraunsh@redhat.com
+    name: Ori Braunshtein
   maturity: alpha
   provider:
-    name: Community
+    name: Red Hat
   version: 4.14.0
   webhookdefinitions:
   - admissionReviewVersions:
