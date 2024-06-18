@@ -867,6 +867,8 @@ spec:
                   value: "true"
                 - name: FRR_IMAGE
                   value: quay.io/openshift/origin-metallb-frr:4.16
+                - name: FRRK8S_IMAGE
+                  value: quay.io/openshift/origin-metallb-frr:4.16
                 - name: KUBE_RBAC_PROXY_IMAGE
                   value: quay.io/openshift/origin-kube-rbac-proxy:4.16
                 - name: DEPLOY_KUBE_RBAC_PROXIES
