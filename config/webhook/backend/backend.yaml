@@ -17,7 +17,7 @@ spec:
       annotations:
         prometheus.io/port: '7472'
         prometheus.io/scrape: 'true'
-        openshift.io/scc: restricted-v2
+        openshift.io/required-scc: restricted-v2
       labels:
         app: metallb
         component: webhook-server
