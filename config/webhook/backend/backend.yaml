@@ -17,7 +17,7 @@ spec:
       annotations:
         prometheus.io/port: '7472'
         prometheus.io/scrape: 'true'
-        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
         openshift.io/required-scc: restricted-v2
       labels:
         app: metallb
