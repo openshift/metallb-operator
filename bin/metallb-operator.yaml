@@ -3956,6 +3956,8 @@ spec:
       control-plane: controller-manager
   template:
     metadata:
+      annotations:
+            openshift.io/required-scc: restricted-v2 
       labels:
         control-plane: controller-manager
     spec:

@@ -5,6 +5,9 @@ metadata:
   namespace: metallb-system
 spec:
   template:
+    metadata:
+        annotations:
+          openshift.io/required-scc: restricted-v2 
     spec:
       securityContext:
         runAsNonRoot: true
