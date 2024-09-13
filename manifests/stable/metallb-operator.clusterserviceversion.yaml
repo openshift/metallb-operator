@@ -637,6 +637,12 @@ spec:
       permissions:
       - rules:
         - apiGroups:
+            - ""
+          resources:
+            - nodes
+          verbs:
+            - list
+        - apiGroups:
           - ""
           resources:
           - secrets
