@@ -548,7 +548,6 @@ spec:
                 - metallb-webhook-configuration
               resources:
                 - validatingwebhookconfigurations
-                - mutatingwebhookconfigurations
               verbs:
                 - create
                 - delete
@@ -561,7 +560,6 @@ spec:
                 - admissionregistration.k8s.io
               resources:
                 - validatingwebhookconfigurations
-                - mutatingwebhookconfigurations
               verbs:
                 - list
                 - watch
@@ -815,6 +813,7 @@ spec:
                 - watch
                 - create
                 - update
+                - delete
             - apiGroups:
                 - metallb.io
               resources:
