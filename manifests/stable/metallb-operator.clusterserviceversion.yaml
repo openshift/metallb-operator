@@ -849,6 +849,8 @@ spec:
           strategy: {}
           template:
             metadata:
+              annotations:
+                openshift.io/required-scc: restricted-v2 
               labels:
                 control-plane: controller-manager
             spec:
@@ -939,6 +941,7 @@ spec:
               annotations:
                 prometheus.io/port: "7472"
                 prometheus.io/scrape: "true"
+                openshift.io/required-scc: restricted-v2
               labels:
                 app: metallb
                 component: webhook-server
