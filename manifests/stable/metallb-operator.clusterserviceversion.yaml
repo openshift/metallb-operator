@@ -932,6 +932,10 @@ spec:
                         value: "9121"
                       - name: MEMBER_LIST_BIND_PORT
                         value: "9122"
+                      - name: FRRK8S_EXTERNAL_NAMESPACE
+                        value: "openshift-frr-k8s"
+                      - name: DEPLOY_FRRK8S_FROM_CNO
+                        value: "true"
                     image: quay.io/openshift/origin-metallb-operator:4.18
                     name: manager
                     ports:
