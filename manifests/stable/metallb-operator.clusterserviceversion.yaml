@@ -887,7 +887,7 @@ spec:
             template:
               metadata:
                 annotations:
-                    openshift.io/required-scc: restricted-v2 
+                    openshift.io/required-scc: restricted-v2
                 labels:
                   control-plane: controller-manager
               spec:
@@ -936,6 +936,8 @@ spec:
                         value: "openshift-frr-k8s"
                       - name: DEPLOY_FRRK8S_FROM_CNO
                         value: "true"
+                      - name: CNO_MIN_FRRK8S_VERSION
+                        value: 4.18.0-0
                     image: quay.io/openshift/origin-metallb-operator:4.18
                     name: manager
                     ports:
@@ -982,7 +984,7 @@ spec:
                 annotations:
                   prometheus.io/port: "7472"
                   prometheus.io/scrape: "true"
-                  openshift.io/required-scc: restricted-v2 
+                  openshift.io/required-scc: restricted-v2
 
                 labels:
                   app: metallb
