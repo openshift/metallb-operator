@@ -10,17 +10,17 @@ spec:
         - name: manager
           env:
           - name: SPEAKER_IMAGE
-            value: quay.io/openshift/origin-metallb:4.18
+            value: quay.io/openshift/origin-metallb:4.19
           - name: CONTROLLER_IMAGE
-            value: quay.io/openshift/origin-metallb:4.18
+            value: quay.io/openshift/origin-metallb:4.19
           - name: ENABLE_OPERATOR_WEBHOOK
             value: "true"
           - name: METALLB_BGP_TYPE
             value: frr
           - name: FRR_IMAGE
-            value: quay.io/openshift/origin-metallb-frr:4.18
+            value: quay.io/openshift/origin-metallb-frr:4.19
           - name: KUBE_RBAC_PROXY_IMAGE
-            value: quay.io/openshift/origin-kube-rbac-proxy:4.18
+            value: quay.io/openshift/origin-kube-rbac-proxy:4.19
           - name: DEPLOY_KUBE_RBAC_PROXIES
             value: "true"
           - name: DEPLOY_PODMONITORS
@@ -43,4 +43,4 @@ spec:
             value: "9121"
           - name: MEMBER_LIST_BIND_PORT
             value: "9122"
-          image: quay.io/openshift/origin-metallb-operator:4.18
+          image: quay.io/openshift/origin-metallb-operator:4.19
