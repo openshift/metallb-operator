@@ -485,6 +485,9 @@ spec:
       - kind: ServiceL2Status
         name: servicel2statuses.metallb.io
         version: v1beta1
+      - kind: ServiceBGPStatus
+        name: servicebgpstatuses.metallb.io
+        version: v1beta1
   description: An operator for deploying MetalLB on a kubernetes cluster.
   displayName: MetalLB Operator
   icon:
