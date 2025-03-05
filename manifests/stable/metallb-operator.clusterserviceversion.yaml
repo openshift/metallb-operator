@@ -499,6 +499,9 @@ spec:
         kind: MetalLB
         name: metallbs.metallb.io
         version: v1beta1
+      - kind: ServiceBGPStatus
+        name: servicebgpstatuses.metallb.io
+        version: v1beta1
       - kind: ServiceL2Status
         description: L2ServiceStatus is the Schema for the l2servicestatus API
         name: servicel2statuses.metallb.io
@@ -1266,6 +1269,13 @@ spec:
                 - get
                 - list
                 - watch
+            - apiGroups:
+                - metallb.io
+              resources:
+                - servicebgpstatuses
+                - servicebgpstatuses/status
+              verbs:
+                - '*'
             - apiGroups:
                 - security.openshift.io
               resourceNames:
