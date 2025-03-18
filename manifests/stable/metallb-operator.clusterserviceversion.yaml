@@ -729,6 +729,14 @@ spec:
                 - list
                 - watch
             - apiGroups:
+                - apps
+              resources:
+                - daemonsets
+                - deployments
+              verbs:
+                - list
+                - watch
+            - apiGroups:
                 - config.openshift.io
               resources:
                 - clusteroperators
