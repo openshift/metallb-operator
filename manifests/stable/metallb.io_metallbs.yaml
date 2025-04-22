@@ -42,6 +42,7 @@ spec:
               bgpBackend:
                 description: The type of BGP implementation deployed with MetalLB
                 type: string
+                default: "frr-k8s"
               controllerConfig:
                 description: additional configs to be applied on MetalLB Controller
                   deployment.
