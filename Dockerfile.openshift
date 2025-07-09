@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -19,7 +19,7 @@ COPY .git/ .git/
 RUN export GIT_COMMIT="${GIT_COMMIT:-$(git rev-parse --verify 'HEAD^{commit}')}" && \ 
     CGO_ENABLED=0 GO111MODULE=on go build -a -mod=vendor -ldflags "-X 'main.build=${GIT_COMMIT}'" -o manager main.go
 
-FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
+FROM registry.ci.openshift.org/ocp/4.20:base-rhel9
 
 WORKDIR /
 COPY --from=builder /workspace/manager .
