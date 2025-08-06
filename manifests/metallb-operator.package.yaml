@@ -1,4 +1,4 @@
 packageName: metallb-operator
 channels:
 - name: "stable"
-  currentCSV: metallb-operator.v4.18.0
+  currentCSV: metallb-operator.v4.19.0
