@@ -4,7 +4,7 @@ export OPERATOR_SDK=_cache/operator-sdk
 make operator-sdk
 export KUSTOMIZE=_cache/kustomize
 make kustomize
-VERSION="4.18"
+VERSION="4.19"
 CSV_VERSION="$VERSION.0"
 
 
