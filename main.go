@@ -92,7 +92,7 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	setupLog.Info("git commit:", "id", build)
+	setupLog.Info("dummy git commit:", "id", build)
 
 	operatorNamespace := checkEnvVar("OPERATOR_NAMESPACE")
 	checkEnvVar("SPEAKER_IMAGE")
