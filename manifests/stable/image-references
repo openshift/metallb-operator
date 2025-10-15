@@ -6,16 +6,16 @@ spec:
   - name: metallb-rhel9-operator
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-metallb-operator:4.20
+      name: quay.io/openshift/origin-metallb-operator:4.21
   - name: metallb-rhel9
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-metallb:4.20
+      name: quay.io/openshift/origin-metallb:4.21
   - name: metallb-frr-rhel9
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-metallb-frr:4.20
+      name: quay.io/openshift/origin-metallb-frr:4.21
   - name: kube-rbac-proxy
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-kube-rbac-proxy:4.20
+      name: quay.io/openshift/origin-kube-rbac-proxy:4.21
