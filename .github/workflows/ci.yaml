@@ -310,6 +310,19 @@ jobs:
         shell: bash
         working-directory: metallboperator
     steps:
+      - name: Free Disk Space
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo apt-get clean
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -368,14 +381,16 @@ jobs:
           export KUBECONFIG=${HOME}/.kube/config
           make test-validation
           SKIP="FRR-K8s-external" make test-e2e
-          kubectl wait -n metallb-system --for=delete pod -l "component in (speaker,controller,frr-k8s,frr-k8s-webhook-server)" --timeout=180s
+          kubectl wait -n metallb-system --for=delete pod -l "component in (speaker,controller,statuscleaner)" --timeout=180s
+          kubectl wait -n metallb-system --for=delete pod -l "app.kubernetes.io/component=frr-k8s" --timeout=180s
 
       - name: Deploy MetalLB resource
         run: |
           export KUBECONFIG=${HOME}/.kube/config
           kubectl apply -f config/samples/metallb_frrk8s.yaml
           sleep 20
-          kubectl wait -n metallb-system --for=condition=Ready pod -l "component in (speaker,controller,frr-k8s,frr-k8s-webhook-server)" --timeout=180s
+          kubectl wait -n metallb-system --for=condition=Ready pod -l "component in (speaker,controller,statuscleaner)" --timeout=180s
+          kubectl wait -n metallb-system --for=condition=Ready pod -l "app.kubernetes.io/component=frr-k8s" --timeout=180s
 
       - name: frr-k8s E2E Webhooks tests
         run: |
