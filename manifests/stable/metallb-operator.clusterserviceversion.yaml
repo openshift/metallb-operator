@@ -478,6 +478,10 @@ spec:
         name: communities.metallb.io
         version: v1beta1
         description: Community is the Schema for the communities API
+      - kind: ConfigurationState
+        name: configurationstates.metallb.io
+        version: v1beta1
+        description: ConfigurationState is the Schema for the configurationstates API
       - kind: FRRConfiguration
         name: frrconfigurations.frrk8s.metallb.io
         version: v1beta1
@@ -1141,6 +1145,22 @@ spec:
                 - get
                 - list
                 - watch
+            - apiGroups:
+                - metallb.io
+              resources:
+                - configurationstates
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
+                - metallb.io
+              resources:
+                - configurationstates/status
+              verbs:
+                - get
+                - patch
+                - update
           serviceAccountName: controller
         - rules:
             - apiGroups:
@@ -1285,6 +1305,14 @@ spec:
                 - metallb.io
               resources:
                 - communities
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
+                - metallb.io
+              resources:
+                - configurationstates
               verbs:
                 - get
                 - list
