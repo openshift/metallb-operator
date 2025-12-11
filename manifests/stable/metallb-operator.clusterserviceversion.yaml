@@ -858,6 +858,8 @@ spec:
               resources:
                 - servicel2statuses
                 - servicel2statuses/status
+                - configurationstates
+                - configurationstates/status
               verbs:
                 - '*'
             - apiGroups:
@@ -1150,8 +1152,12 @@ spec:
               resources:
                 - configurationstates
               verbs:
+                - create
+                - delete
                 - get
                 - list
+                - patch
+                - update
                 - watch
             - apiGroups:
                 - metallb.io
