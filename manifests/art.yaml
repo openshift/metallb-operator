@@ -11,5 +11,5 @@ updates:
       replace: 'olm.skipRange: ">=4.8.0 <{FULL_VER}"'
   - file: "metallb-operator.package.yaml"
     update_list:
-    - search: "currentCSV: metallb-operator.v{MAJOR}.{MINOR}.0"
+    - search: "currentCSV: metallb-operator.v4.21.0"
       replace: "currentCSV: metallb-operator.{FULL_VER}"
