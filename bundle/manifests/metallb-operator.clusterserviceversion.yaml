@@ -378,8 +378,7 @@ metadata:
           "metadata": {
             "name": "metallb",
             "namespace": "metallb-system"
-          },
-          "spec": {}
+          }
         },
         {
           "apiVersion": "metallb.io/v1beta2",
@@ -433,7 +432,7 @@ metadata:
     categories: Networking
     certified: "false"
     containerImage: quay.io/metallb/metallb-operator
-    createdAt: "2025-12-01T10:02:32Z"
+    createdAt: "2026-01-07T16:11:28Z"
     description: An operator for deploying MetalLB on a kubernetes cluster.
     operators.operatorframework.io/builder: operator-sdk-v1.40.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
@@ -938,7 +937,7 @@ spec:
                       - name: CONTROLLER_IMAGE
                         value: quay.io/metallb/controller:main
                       - name: METALLB_BGP_TYPE
-                        value: native
+                        value: frr
                       - name: FRR_IMAGE
                         value: quay.io/frrouting/frr:9.1.0
                       - name: KUBE_RBAC_PROXY_IMAGE
