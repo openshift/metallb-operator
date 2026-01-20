@@ -1986,7 +1986,23 @@ spec:
     singular: metallb
   scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - description: Available condition status
+      jsonPath: .status.conditions[?(@.type=='Available')].status
+      name: Available
+      type: string
+    - description: Degraded condition status
+      jsonPath: .status.conditions[?(@.type=='Degraded')].status
+      name: Degraded
+      type: string
+    - description: Progressing condition status
+      jsonPath: .status.conditions[?(@.type=='Progressing')].status
+      name: Progressing
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
     schema:
       openAPIV3Schema:
         description: MetalLB is the Schema for the metallbs API
@@ -4672,7 +4688,7 @@ spec:
         - name: DEPLOY_KUBE_RBAC_PROXIES
           value: "false"
         - name: FRRK8S_IMAGE
-          value: quay.io/metallb/frr-k8s:v0.0.21
+          value: quay.io/metallb/frr-k8s:v0.0.22
         - name: FRRK8S_EXTERNAL_NAMESPACE
           value: frr-k8s-system
         - name: OPERATOR_NAMESPACE
