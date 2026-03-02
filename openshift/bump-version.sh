@@ -37,4 +37,6 @@ sed -i "s/:${CURRENT_VERSION}/:${NEW_VERSION}/g" manifests/stable/image-referenc
 sed -i "s/:${CURRENT_VERSION}/:${NEW_VERSION}/g" "$CSV_FILE"
 sed -i "s/v${CURRENT_VERSION}\\.0/v${NEW_VERSION}.0/g" "$CSV_FILE"
 sed -i "s/<${CURRENT_VERSION}\\.0/<${NEW_VERSION}.0/g" "$CSV_FILE"
+sed -i "s/version: ${CURRENT_VERSION}\\.0/version: ${NEW_VERSION}.0/g" "$CSV_FILE"
+sed -i "s/v${CURRENT_VERSION}\\.0/v${NEW_VERSION}.0/g" manifests/art.yaml
 
