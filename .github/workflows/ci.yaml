@@ -23,10 +23,15 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
 
-    - name: Verify
-      uses: golangci/golangci-lint-action@v3
+    - name: Setup go
+      uses: actions/setup-go@v6
       with:
-        version: v1.64.4
+        go-version-file: "go.mod"
+
+    - name: Verify
+      uses: golangci/golangci-lint-action@v8
+      with:
+        version: v2.11.3
         args: --timeout=15m0s --verbose
 
   unit:
@@ -153,7 +158,7 @@ jobs:
         ref: v0.13 # previous release version
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: "metallboperator/go.mod"
 
@@ -196,7 +201,7 @@ jobs:
         path: metallboperator-latest
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: "metallboperator-latest/go.mod"
 
