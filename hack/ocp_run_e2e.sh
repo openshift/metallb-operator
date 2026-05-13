@@ -8,4 +8,4 @@ export FRRK8S_EXTERNAL_NAMESPACE="openshift-frr-k8s"
 
 hack/validate_ocp_bundle.sh
 go test --tags=validationtests -v ./test/e2e/validation -ginkgo.v -junit /logs/artifacts/ -report /logs/artifacts/
-go test --tags=e2etests -v ./test/e2e/functional -ginkgo.v -ginkgo.skip "with BGP type" -junit /logs/artifacts/ -report /logs/artifacts/
+go test --tags=e2etests -v ./test/e2e/functional -ginkgo.v -junit /logs/artifacts/ -report /logs/artifacts/
