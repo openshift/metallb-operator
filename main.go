@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"flag"
@@ -46,8 +47,10 @@ import (
 
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
 	"github.com/metallb/metallb-operator/controllers"
+	"github.com/metallb/metallb-operator/pkg/openshift"
 	"github.com/metallb/metallb-operator/pkg/params"
 	"github.com/metallb/metallb-operator/pkg/platform"
+	"github.com/metallb/metallb-operator/pkg/tlsconfig"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	openshiftconfigv1 "github.com/openshift/api/config/v1"
 	openshiftapiv1 "github.com/openshift/api/operator/v1"
@@ -114,6 +117,28 @@ func main() {
 		setupLog.Error(err, "failed to parse env params")
 		os.Exit(1)
 	}
+
+	ctx, cancel := context.WithCancel(ctrl.SetupSignalHandler())
+	defer cancel()
+
+	var ocpTLS *openshift.TLSConfig
+	if platformInfo.IsOpenShift() {
+		ocpTLS, err = openshift.FetchTLSConfig(ctx, scheme, setupLog)
+		if err != nil {
+			setupLog.Error(err, "failed to fetch OpenShift TLS profile")
+			os.Exit(1)
+		}
+		envParams.TLSCipherSuites = ocpTLS.CipherSuites
+		envParams.TLSCurvePreferences = ocpTLS.CurvePreferences
+		envParams.TLSMinVersion = ocpTLS.MinVersion
+	}
+
+	tlsOpt, err := tlsconfig.OptFor(envParams.TLSCipherSuites, envParams.TLSCurvePreferences, envParams.TLSMinVersion)
+	if err != nil {
+		setupLog.Error(err, "failed to parse TLS configuration")
+		os.Exit(1)
+	}
+
 	jsonEnv, err := json.Marshal(envParams)
 	if err != nil {
 		setupLog.Error(err, "failed to marshal env params")
@@ -139,11 +164,18 @@ func main() {
 				&metallbv1beta1.MetalLB{}: namespaceSelector,
 			},
 		},
-		WebhookServer: webhookServer(9443, *withWebhookHTTP2),
+		WebhookServer: webhookServer(9443, *withWebhookHTTP2, tlsOpt),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
+	}
+
+	if platformInfo.IsOpenShift() {
+		if err := ocpTLS.SetupProfileWatcher(mgr, cancel, setupLog); err != nil {
+			setupLog.Error(err, "unable to setup TLS security profile watcher")
+			os.Exit(1)
+		}
 	}
 
 	if err = (&controllers.MetalLBReconciler{
@@ -212,13 +244,13 @@ func main() {
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
 }
 
-func webhookServer(port int, withHTTP2 bool) webhook.Server {
+func webhookServer(port int, withHTTP2 bool, tlsOpt func(*tls.Config)) webhook.Server {
 	disableHTTP2 := func(c *tls.Config) {
 		if withHTTP2 {
 			return
@@ -227,7 +259,7 @@ func webhookServer(port int, withHTTP2 bool) webhook.Server {
 	}
 
 	webhookServerOptions := webhook.Options{
-		TLSOpts: []func(config *tls.Config){disableHTTP2},
+		TLSOpts: []func(config *tls.Config){disableHTTP2, tlsOpt},
 		Port:    port,
 	}
 

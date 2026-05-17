@@ -30,9 +30,9 @@
                 "containers": [
                     {
                         "args": [
-                            "--port=7472",
+                            "--port=9998",
                             "--log-level=info",
-                            "--host=localhost"
+                            "--metrics-cert-dir=/etc/metrics"
                         ],
                         "command": [
                             "/speaker"
@@ -99,9 +99,9 @@
                         "livenessProbe": {
                             "failureThreshold": 3,
                             "httpGet": {
-                                "host": "localhost",
-                                "path": "/metrics",
-                                "port": "monitoring"
+                                "host": "127.0.0.1",
+                                "path": "/healthz",
+                                "port": 17472
                             },
                             "initialDelaySeconds": 10,
                             "periodSeconds": 10,
@@ -111,8 +111,8 @@
                         "name": "speaker",
                         "ports": [
                             {
-                                "containerPort": 7472,
-                                "name": "monitoring"
+                                "containerPort": 9998,
+                                "name": "metricshttps"
                             },
                             {
                                 "containerPort": 7946,
@@ -128,9 +128,9 @@
                         "readinessProbe": {
                             "failureThreshold": 3,
                             "httpGet": {
-                                "host": "localhost",
-                                "path": "/metrics",
-                                "port": "monitoring"
+                                "host": "127.0.0.1",
+                                "path": "/readyz",
+                                "port": 17472
                             },
                             "initialDelaySeconds": 10,
                             "periodSeconds": 10,
@@ -161,6 +161,11 @@
                             {
                                 "mountPath": "/etc/metallb",
                                 "name": "metallb-excludel2"
+                            },
+                            {
+                                "mountPath": "/etc/metrics",
+                                "name": "metrics-certs",
+                                "readOnly": true
                             }
                         ]
                     },
@@ -180,9 +185,9 @@
                         "livenessProbe": {
                             "failureThreshold": 3,
                             "httpGet": {
-                                "host": "localhost",
-                                "path": "livez",
-                                "port": 7473
+                                "path": "/livez",
+                                "port": 9999,
+                                "scheme": "HTTPS"
                             },
                             "initialDelaySeconds": 10,
                             "periodSeconds": 10,
@@ -205,9 +210,9 @@
                         "startupProbe": {
                             "failureThreshold": 30,
                             "httpGet": {
-                                "host": "localhost",
                                 "path": "/livez",
-                                "port": 7473
+                                "port": 9999,
+                                "scheme": "HTTPS"
                             },
                             "periodSeconds": 5
                         },
@@ -261,8 +266,10 @@
                     },
                     {
                         "args": [
-                            "--metrics-port=7473",
-                            "--host=localhost"
+                            "--metrics-port=9999",
+                            "--metrics-bind-address=0.0.0.0",
+                            "--tls-cert-file=/etc/metrics/tls.crt",
+                            "--tls-private-key-file=/etc/metrics/tls.key"
                         ],
                         "command": [
                             "/etc/frr_metrics/frr-metrics"
@@ -277,8 +284,8 @@
                         "name": "frr-metrics",
                         "ports": [
                             {
-                                "containerPort": 7473,
-                                "name": "frrmetrics"
+                                "containerPort": 9999,
+                                "name": "frrmetricshttps"
                             }
                         ],
                         "securityContext": {
@@ -297,86 +304,7 @@
                             {
                                 "mountPath": "/etc/frr_metrics",
                                 "name": "metrics"
-                            }
-                        ]
-                    },
-                    {
-                        "args": [
-                            "--logtostderr",
-                            "--secure-listen-address=:9998",
-                            "--upstream=http://localhost:7472/",
-                            "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                            "--tls-private-key-file=/etc/metrics/tls.key",
-                            "--tls-cert-file=/etc/metrics/tls.crt"
-                        ],
-                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.12.0",
-                        "imagePullPolicy": null,
-                        "name": "kube-rbac-proxy",
-                        "ports": [
-                            {
-                                "containerPort": 9998,
-                                "name": "metricshttps"
-                            }
-                        ],
-                        "resources": {
-                            "requests": {
-                                "cpu": "10m",
-                                "memory": "20Mi"
-                            }
-                        },
-                        "securityContext": {
-                            "allowPrivilegeEscalation": false,
-                            "readOnlyRootFilesystem": true
-                        },
-                        "terminationMessagePolicy": "FallbackToLogsOnError",
-                        "volumeMounts": [
-                            {
-                                "mountPath": "/etc/metrics",
-                                "name": "metrics-certs",
-                                "readOnly": true
-                            }
-                        ]
-                    },
-                    {
-                        "args": [
-                            "--logtostderr",
-                            "--secure-listen-address=:9999",
-                            "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                            "--upstream=http://localhost:7473/",
-                            "--tls-private-key-file=/etc/metrics/tls.key",
-                            "--tls-cert-file=/etc/metrics/tls.crt"
-                        ],
-                        "env": [
-                            {
-                                "name": "METALLB_HOST",
-                                "valueFrom": {
-                                    "fieldRef": {
-                                        "fieldPath": "status.hostIP"
-                                    }
-                                }
-                            }
-                        ],
-                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.12.0",
-                        "imagePullPolicy": null,
-                        "name": "kube-rbac-proxy-frr",
-                        "ports": [
-                            {
-                                "containerPort": 9999,
-                                "name": "frrmetricshttps"
-                            }
-                        ],
-                        "resources": {
-                            "requests": {
-                                "cpu": "10m",
-                                "memory": "20Mi"
-                            }
-                        },
-                        "securityContext": {
-                            "allowPrivilegeEscalation": false,
-                            "readOnlyRootFilesystem": true
-                        },
-                        "terminationMessagePolicy": "FallbackToLogsOnError",
-                        "volumeMounts": [
+                            },
                             {
                                 "mountPath": "/etc/metrics",
                                 "name": "metrics-certs",
