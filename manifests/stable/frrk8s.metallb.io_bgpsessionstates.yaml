@@ -4,21 +4,37 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.3
   creationTimestamp: null
-  name: frrnodestates.frrk8s.metallb.io
+  name: bgpsessionstates.frrk8s.metallb.io
 spec:
   group: frrk8s.metallb.io
   names:
-    kind: FRRNodeState
-    listKind: FRRNodeStateList
-    plural: frrnodestates
-    singular: frrnodestate
-  scope: Cluster
+    kind: BGPSessionState
+    listKind: BGPSessionStateList
+    plural: bgpsessionstates
+    singular: bgpsessionstate
+  scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - jsonPath: .status.node
+      name: Node
+      type: string
+    - jsonPath: .status.peer
+      name: Peer
+      type: string
+    - jsonPath: .status.vrf
+      name: VRF
+      type: string
+    - jsonPath: .status.bgpStatus
+      name: BGP
+      type: string
+    - jsonPath: .status.bfdStatus
+      name: BFD
+      type: string
+    name: v1beta1
     schema:
       openAPIV3Schema:
-        description: FRRNodeState exposes the status of the FRR instance running on
-          each node.
+        description: BGPSessionState exposes the status of a BGP Session from the
+          FRR instance running on the node.
         properties:
           apiVersion:
             description: |-
@@ -38,24 +54,20 @@ spec:
           metadata:
             type: object
           spec:
-            description: FRRNodeStateSpec defines the desired state of FRRNodeState.
+            description: BGPSessionStateSpec defines the desired state of BGPSessionState.
             type: object
           status:
-            description: FRRNodeStateStatus defines the observed state of FRRNodeState.
+            description: BGPSessionStateStatus defines the observed state of BGPSessionState.
             properties:
-              lastConversionResult:
-                description: LastConversionResult is the status of the last translation
-                  between the `FRRConfiguration`s resources and FRR's configuration,
-                  contains "success" or an error.
+              bfdStatus:
                 type: string
-              lastReloadResult:
-                description: LastReloadResult represents the status of the last configuration
-                  update operation by FRR, contains "success" or an error.
+              bgpStatus:
                 type: string
-              runningConfig:
-                description: RunningConfig represents the current FRR running config,
-                  which is the configuration the FRR instance is currently running
-                  with.
+              node:
+                type: string
+              peer:
+                type: string
+              vrf:
                 type: string
             type: object
         type: object
