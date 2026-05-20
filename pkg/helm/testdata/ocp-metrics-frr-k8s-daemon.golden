@@ -6,8 +6,8 @@
             "app": "frr-k8s",
             "app.kubernetes.io/component": "frr-k8s",
             "app.kubernetes.io/managed-by": "Helm",
-            "app.kubernetes.io/version": "v0.0.22",
-            "helm.sh/chart": "frr-k8s-0.0.22"
+            "app.kubernetes.io/version": "v0.0.23",
+            "helm.sh/chart": "frr-k8s-0.0.23"
         },
         "name": "frr-k8s",
         "namespace": "metallb-test-namespace"
@@ -32,8 +32,9 @@
                         "args": [
                             "--node-name=$(NODE_NAME)",
                             "--namespace=$(NAMESPACE)",
-                            "--metrics-bind-address=127.0.0.1:7572",
-                            "--log-level=info"
+                            "--metrics-bind-address=0.0.0.0:9998",
+                            "--log-level=info",
+                            "--metrics-cert-dir=/etc/metrics"
                         ],
                         "command": [
                             "/frr-k8s"
@@ -69,8 +70,8 @@
                             "failureThreshold": 3,
                             "httpGet": {
                                 "host": "127.0.0.1",
-                                "path": "/metrics",
-                                "port": "monitoring"
+                                "path": "/healthz",
+                                "port": 7572
                             },
                             "initialDelaySeconds": 10,
                             "periodSeconds": 10,
@@ -80,16 +81,16 @@
                         "name": "controller",
                         "ports": [
                             {
-                                "containerPort": 7572,
-                                "name": "monitoring"
+                                "containerPort": 9998,
+                                "name": "metricshttps"
                             }
                         ],
                         "readinessProbe": {
                             "failureThreshold": 3,
                             "httpGet": {
                                 "host": "127.0.0.1",
-                                "path": "/metrics",
-                                "port": "monitoring"
+                                "path": "/readyz",
+                                "port": 7572
                             },
                             "initialDelaySeconds": 10,
                             "periodSeconds": 10,
@@ -112,6 +113,11 @@
                             {
                                 "mountPath": "/etc/frr_reloader",
                                 "name": "reloader"
+                            },
+                            {
+                                "mountPath": "/etc/metrics",
+                                "name": "metrics-certs",
+                                "readOnly": true
                             }
                         ]
                     },
@@ -131,9 +137,9 @@
                         "livenessProbe": {
                             "failureThreshold": 3,
                             "httpGet": {
-                                "host": "127.0.0.1",
                                 "path": "/livez",
-                                "port": 7573
+                                "port": 9999,
+                                "scheme": "HTTPS"
                             },
                             "periodSeconds": 10
                         },
@@ -153,9 +159,9 @@
                         "startupProbe": {
                             "failureThreshold": 30,
                             "httpGet": {
-                                "host": "127.0.0.1",
                                 "path": "/livez",
-                                "port": 7573
+                                "port": 9999,
+                                "scheme": "HTTPS"
                             },
                             "periodSeconds": 5
                         },
@@ -201,8 +207,10 @@
                     },
                     {
                         "args": [
-                            "--metrics-port=7573",
-                            "--metrics-bind-address=127.0.0.1"
+                            "--metrics-port=9999",
+                            "--metrics-bind-address=0.0.0.0",
+                            "--tls-cert-file=/etc/metrics/tls.crt",
+                            "--tls-private-key-file=/etc/metrics/tls.key"
                         ],
                         "command": [
                             "/etc/frr_metrics/frr-metrics"
@@ -211,8 +219,8 @@
                         "name": "frr-metrics",
                         "ports": [
                             {
-                                "containerPort": 7573,
-                                "name": "frr-metrics"
+                                "containerPort": 9999,
+                                "name": "frrmetricshttps"
                             }
                         ],
                         "volumeMounts": [
@@ -227,6 +235,11 @@
                             {
                                 "mountPath": "/etc/frr_metrics",
                                 "name": "metrics"
+                            },
+                            {
+                                "mountPath": "/etc/metrics",
+                                "name": "metrics-certs",
+                                "readOnly": true
                             }
                         ]
                     },
@@ -235,6 +248,7 @@
                             "--node-name=$(NODE_NAME)",
                             "--namespace=$(NAMESPACE)",
                             "--pod-name=$(POD_NAME)",
+                            "--log-level=info",
                             "--poll-interval=2m"
                         ],
                         "command": [
@@ -280,72 +294,6 @@
                             {
                                 "mountPath": "/etc/frr_status",
                                 "name": "frr-status"
-                            }
-                        ]
-                    },
-                    {
-                        "args": [
-                            "--logtostderr",
-                            "--secure-listen-address=:9998",
-                            "--upstream=http://127.0.0.1:7572/",
-                            "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                            "--tls-private-key-file=/etc/metrics/tls.key",
-                            "--tls-cert-file=/etc/metrics/tls.crt"
-                        ],
-                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.12.0",
-                        "imagePullPolicy": null,
-                        "name": "kube-rbac-proxy",
-                        "ports": [
-                            {
-                                "containerPort": 9998,
-                                "name": "metricshttps"
-                            }
-                        ],
-                        "resources": {
-                            "requests": {
-                                "cpu": "10m",
-                                "memory": "20Mi"
-                            }
-                        },
-                        "terminationMessagePolicy": "FallbackToLogsOnError",
-                        "volumeMounts": [
-                            {
-                                "mountPath": "/etc/metrics",
-                                "name": "metrics-certs",
-                                "readOnly": true
-                            }
-                        ]
-                    },
-                    {
-                        "args": [
-                            "--logtostderr",
-                            "--secure-listen-address=:9999",
-                            "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                            "--upstream=http://127.0.0.1:7573/",
-                            "--tls-private-key-file=/etc/metrics/tls.key",
-                            "--tls-cert-file=/etc/metrics/tls.crt"
-                        ],
-                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.12.0",
-                        "imagePullPolicy": null,
-                        "name": "kube-rbac-proxy-frr",
-                        "ports": [
-                            {
-                                "containerPort": 9999,
-                                "name": "metricshttps"
-                            }
-                        ],
-                        "resources": {
-                            "requests": {
-                                "cpu": "10m",
-                                "memory": "20Mi"
-                            }
-                        },
-                        "terminationMessagePolicy": "FallbackToLogsOnError",
-                        "volumeMounts": [
-                            {
-                                "mountPath": "/etc/metrics",
-                                "name": "metrics-certs",
-                                "readOnly": true
                             }
                         ]
                     }
