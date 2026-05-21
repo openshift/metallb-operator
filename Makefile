@@ -151,8 +151,10 @@ manifests: controller-gen generate-metallb-manifests  ## Generate manifests e.g.
 	sed -i -e 's/validating-webhook-configuration/metallb-operator-webhook-configuration/g' config/webhook/manifests.yaml
 	sed -i -e 's/webhook-service/metallb-operator-webhook-service/g' config/webhook/manifests.yaml
 
-fmt:  ## Run go fmt against code
-	[ -z "`gofmt -s -w -l -e .`" ]
+fmt: ## Go fmt your code
+	hack/gofmt.sh
+
+fmt-code: ## Run go fmt against code.
 	go fmt ./...
 
 vet:  ## Run go vet against code

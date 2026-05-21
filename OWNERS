@@ -1,0 +1,16 @@
+reviewers:
+  - fedepaol
+  - russellb
+  - dougbtv
+  - dcbw
+  - msherif1234
+  - oribon
+approvers:
+  - fedepaol
+  - russellb
+  - dougbtv
+  - dcbw
+  - msherif1234
+  - oribon
+component: "Networking"
+subcomponent: "metallb"

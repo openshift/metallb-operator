@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+        - name: manager
+          env:
+          - name: SPEAKER_IMAGE
+            value: quay.io/openshift/origin-metallb:4.20
+          - name: CONTROLLER_IMAGE
+            value: quay.io/openshift/origin-metallb:4.20
+          - name: ENABLE_OPERATOR_WEBHOOK
+            value: "true"
+          - name: METALLB_BGP_TYPE
+            value: frr
+          - name: FRR_IMAGE
+            value: quay.io/openshift/origin-metallb-frr:4.20
+          - name: KUBE_RBAC_PROXY_IMAGE
+            value: quay.io/openshift/origin-kube-rbac-proxy:4.20
+          - name: DEPLOY_KUBE_RBAC_PROXIES
+            value: "true"
+          - name: DEPLOY_PODMONITORS
+            value: "false"
+          - name: DEPLOY_SERVICEMONITORS
+            value: "true"
+          - name: ENABLE_WEBHOOK
+            value: "true"
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: METRICS_PORT
+            value: "29150"
+          - name: HTTPS_METRICS_PORT
+            value: "9120"
+          - name: FRR_METRICS_PORT
+            value: "29151"
+          - name: FRR_HTTPS_METRICS_PORT
+            value: "9121"
+          - name: MEMBER_LIST_BIND_PORT
+            value: "9122"
+          image: quay.io/openshift/origin-metallb-operator:4.20

@@ -1,0 +1,21 @@
+---
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+spec:
+  tags:
+  - name: metallb-rhel8-operator
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-metallb-operator:4.11
+  - name: metallb-rhel8
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-metallb:4.11
+  - name: metallb-frr-rhel8
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-metallb-frr:4.11
+  - name: kube-rbac-proxy
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-kube-rbac-proxy:4.11            
