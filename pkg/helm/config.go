@@ -64,6 +64,14 @@ func setOcpMonitorFields(obj *unstructured.Unstructured) error {
 		if err != nil {
 			return err
 		}
+		// OCP's user-workload Prometheus sets arbitraryFSAccessThroughSMs
+		// to deny, blocking bearerTokenFile and tlsConfig file paths.
+		// Remove all file-based fields; the Helm values already supply
+		// secret/configmap-based references for OCP.
+		unstructured.RemoveNestedField(ep.(map[string]interface{}), "bearerTokenFile")
+		unstructured.RemoveNestedField(ep.(map[string]interface{}), "tlsConfig", "caFile")
+		unstructured.RemoveNestedField(ep.(map[string]interface{}), "tlsConfig", "certFile")
+		unstructured.RemoveNestedField(ep.(map[string]interface{}), "tlsConfig", "keyFile")
 	}
 	err = unstructured.SetNestedSlice(obj.Object, eps, "spec", "endpoints")
 	if err != nil {
@@ -108,11 +116,28 @@ func ocpPromConfigFor(component, namespace string) (map[string]interface{}, map[
 		"service.beta.openshift.io/serving-cert-secret-name": secretName,
 	}
 
+	// Use secret/configmap references instead of file paths.
+	// OCP's user-workload Prometheus sets arbitraryFSAccessThroughSMs to
+	// deny, blocking any ServiceMonitor that references the filesystem
+	// via bearerTokenFile or tlsConfig file fields.
 	tlsConfig := map[string]interface{}{
-		"caFile":             "/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt",
+		"ca": map[string]interface{}{
+			"configMap": map[string]interface{}{
+				"name": "openshift-service-ca.crt",
+				"key":  "service-ca.crt",
+			},
+		},
+		"cert": map[string]interface{}{
+			"secret": map[string]interface{}{
+				"name": secretName,
+				"key":  "tls.crt",
+			},
+		},
+		"keySecret": map[string]interface{}{
+			"name": secretName,
+			"key":  "tls.key",
+		},
 		"serverName":         fmt.Sprintf("%s-monitor-service.%s.svc", component, namespace),
-		"certFile":           "/etc/prometheus/secrets/metrics-client-certs/tls.crt",
-		"keyFile":            "/etc/prometheus/secrets/metrics-client-certs/tls.key",
 		"insecureSkipVerify": false,
 	}
 
