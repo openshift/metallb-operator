@@ -440,7 +440,7 @@ metadata:
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
     features.operators.openshift.io/proxy-aware: "false"
-    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/tls-profiles: "true"
     features.operators.openshift.io/token-auth-aws: "false"
     features.operators.openshift.io/token-auth-azure: "false"
     features.operators.openshift.io/token-auth-gcp: "false"
@@ -919,6 +919,7 @@ spec:
                   - args:
                       - --enable-leader-election
                       - --disable-cert-rotation=true
+                      - --external-metallb-webhook-server
                     command:
                       - /manager
                     env:
@@ -1016,6 +1017,9 @@ spec:
                       - --port=9120
                       - --log-level=info
                       - --webhook-mode=onlywebhook
+                      - --tls-cipher-suites=$(TLS_CIPHER_SUITES)
+                      - --tls-min-version=$(TLS_MIN_VERSION)
+                      - --tls-curve-preferences=$(TLS_CURVE_PREFERENCES)
                     command:
                     - /controller
                     env:
@@ -1025,6 +1029,24 @@ spec:
                             fieldPath: metadata.name
                       - name: METALLB_BGP_TYPE
                         value: frr
+                      - name: TLS_CIPHER_SUITES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CIPHER_SUITES
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_MIN_VERSION
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_MIN_VERSION
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_CURVE_PREFERENCES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CURVE_PREFERENCES
+                            name: metallb-tls-config
+                            optional: false
                     image: quay.io/openshift/origin-metallb:4.22
                     livenessProbe:
                       failureThreshold: 3
@@ -1266,6 +1288,13 @@ spec:
                 - patch
                 - update
                 - watch
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - delete
+                - list
           serviceAccountName: manager-account
         - rules:
             - apiGroups:
