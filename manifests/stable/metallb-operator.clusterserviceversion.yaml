@@ -1028,11 +1028,12 @@ spec:
                     image: quay.io/openshift/origin-metallb:4.22
                     livenessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /healthz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     name: webhook-server
                     ports:
@@ -1043,11 +1044,12 @@ spec:
                         protocol: TCP
                     readinessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /readyz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     resources: {}
                     volumeMounts:
