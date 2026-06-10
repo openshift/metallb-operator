@@ -433,7 +433,7 @@ metadata:
     categories: Networking
     certified: "false"
     containerImage: quay.io/metallb/metallb-operator
-    createdAt: "2026-05-10T10:48:05Z"
+    createdAt: "2026-06-10T08:19:52Z"
     description: An operator for deploying MetalLB on a kubernetes cluster.
     operators.operatorframework.io/builder: operator-sdk-v1.40.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
@@ -906,6 +906,7 @@ spec:
                   - args:
                       - --enable-leader-election
                       - --disable-cert-rotation=true
+                      - --external-metallb-webhook-server
                     command:
                       - /manager
                     env:
@@ -921,7 +922,7 @@ spec:
                       - name: TLS_CURVE_PREFERENCES
                       - name: TLS_MIN_VERSION
                       - name: FRRK8S_IMAGE
-                        value: quay.io/metallb/frr-k8s:v0.0.23
+                        value: quay.io/metallb/frr-k8s:v0.0.25
                       - name: FRRK8S_EXTERNAL_NAMESPACE
                         value: frr-k8s-system
                       - name: OPERATOR_NAMESPACE
@@ -981,6 +982,9 @@ spec:
                       - --port=9120
                       - --log-level=info
                       - --webhook-mode=onlywebhook
+                      - --tls-cipher-suites=$(TLS_CIPHER_SUITES)
+                      - --tls-min-version=$(TLS_MIN_VERSION)
+                      - --tls-curve-preferences=$(TLS_CURVE_PREFERENCES)
                     env:
                       - name: METALLB_POD_NAME
                         valueFrom:
@@ -988,14 +992,33 @@ spec:
                             fieldPath: metadata.name
                       - name: METALLB_BGP_TYPE
                         value: native
+                      - name: TLS_CIPHER_SUITES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CIPHER_SUITES
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_MIN_VERSION
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_MIN_VERSION
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_CURVE_PREFERENCES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CURVE_PREFERENCES
+                            name: metallb-tls-config
+                            optional: false
                     image: quay.io/metallb/controller:main
                     livenessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /healthz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     name: webhook-server
                     ports:
@@ -1006,11 +1029,12 @@ spec:
                         protocol: TCP
                     readinessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /readyz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     resources: {}
                     securityContext:
@@ -1262,6 +1286,13 @@ spec:
               verbs:
                 - create
                 - patch
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - delete
+                - list
             - apiGroups:
                 - ""
               resources:
