@@ -440,7 +440,7 @@ metadata:
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
     features.operators.openshift.io/proxy-aware: "false"
-    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/tls-profiles: "true"
     features.operators.openshift.io/token-auth-aws: "false"
     features.operators.openshift.io/token-auth-azure: "false"
     features.operators.openshift.io/token-auth-gcp: "false"
@@ -919,6 +919,7 @@ spec:
                   - args:
                       - --enable-leader-election
                       - --disable-cert-rotation=true
+                      - --external-metallb-webhook-server
                     command:
                       - /manager
                     env:
@@ -953,6 +954,8 @@ spec:
                         value: "29151"
                       - name: FRR_HTTPS_METRICS_PORT
                         value: "9121"
+                      - name: OPERAND_LIVENESS_PORT
+                        value: "7472"
                       - name: MEMBER_LIST_BIND_PORT
                         value: "9122"
                       - name: FRRK8S_EXTERNAL_NAMESPACE
@@ -1016,6 +1019,9 @@ spec:
                       - --port=9120
                       - --log-level=info
                       - --webhook-mode=onlywebhook
+                      - --tls-cipher-suites=$(TLS_CIPHER_SUITES)
+                      - --tls-min-version=$(TLS_MIN_VERSION)
+                      - --tls-curve-preferences=$(TLS_CURVE_PREFERENCES)
                     command:
                     - /controller
                     env:
@@ -1025,14 +1031,33 @@ spec:
                             fieldPath: metadata.name
                       - name: METALLB_BGP_TYPE
                         value: frr
+                      - name: TLS_CIPHER_SUITES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CIPHER_SUITES
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_MIN_VERSION
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_MIN_VERSION
+                            name: metallb-tls-config
+                            optional: false
+                      - name: TLS_CURVE_PREFERENCES
+                        valueFrom:
+                          configMapKeyRef:
+                            key: TLS_CURVE_PREFERENCES
+                            name: metallb-tls-config
+                            optional: false
                     image: quay.io/openshift/origin-metallb:4.22
                     livenessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /healthz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     name: webhook-server
                     ports:
@@ -1043,11 +1068,12 @@ spec:
                         protocol: TCP
                     readinessProbe:
                       failureThreshold: 3
+                      httpGet:
+                        path: /readyz
+                        port: 17472
                       initialDelaySeconds: 10
                       periodSeconds: 10
                       successThreshold: 1
-                      tcpSocket:
-                        port: 9443
                       timeoutSeconds: 1
                     resources: {}
                     volumeMounts:
@@ -1264,6 +1290,13 @@ spec:
                 - patch
                 - update
                 - watch
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - delete
+                - list
           serviceAccountName: manager-account
         - rules:
             - apiGroups:

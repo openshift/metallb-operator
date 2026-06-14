@@ -223,8 +223,8 @@ func metalLBprometheusValues(envConfig params.EnvConfig) map[string]interface{} 
 	controllerAnnotations := map[string]interface{}{}
 
 	if envConfig.IsOpenshift {
-		speakerTLSConfig = ocpServiceMonitorTLSConfig("speaker", envConfig.Namespace)
-		controllerTLSConfig = ocpServiceMonitorTLSConfig("controller", envConfig.Namespace)
+		speakerTLSConfig = ocpServiceMonitorTLSConfig("speaker", envConfig.Namespace, speakerCertsSecret)
+		controllerTLSConfig = ocpServiceMonitorTLSConfig("controller", envConfig.Namespace, controllerCertsSecret)
 		speakerAnnotations = ocpServingCertAnnotationFor(speakerCertsSecret)
 		controllerAnnotations = ocpServingCertAnnotationFor(controllerCertsSecret)
 	}
@@ -261,6 +261,14 @@ func controllerValues(envConfig params.EnvConfig, crdConfig *metallbv1beta1.Meta
 			"name":   "controller",
 		},
 		"webhookMode": "disabled",
+	}
+	controllerValueMap["livenessProbe"] = map[string]interface{}{
+		"enabled": true,
+		"port":    envConfig.LivenessPort,
+	}
+	controllerValueMap["readinessProbe"] = map[string]interface{}{
+		"enabled": true,
+		"port":    envConfig.LivenessPort,
 	}
 	controllerValueMap["logLevel"] = logLevelValue(crdConfig)
 	if envConfig.IsOpenshift {
@@ -315,6 +323,14 @@ func speakerValues(envConfig params.EnvConfig, crdConfig *metallbv1beta1.MetalLB
 		"memberlist": map[string]interface{}{
 			"enabled":    true,
 			"mlBindPort": envConfig.MLBindPort,
+		},
+		"livenessProbe": map[string]interface{}{
+			"enabled": true,
+			"port":    envConfig.LivenessPort,
+		},
+		"readinessProbe": map[string]interface{}{
+			"enabled": true,
+			"port":    envConfig.LivenessPort,
 		},
 		"command": "/speaker",
 	}
