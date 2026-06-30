@@ -432,10 +432,10 @@ metadata:
     capabilities: Basic Install
     categories: Networking
     certified: "false"
-    containerImage: quay.io/openshift/origin-metallb-operator:4.22
+    containerImage: quay.io/openshift/origin-metallb-operator:5.0
     createdAt: "2023-06-06T15:25:00Z"
     description: An operator for deploying MetalLB on a kubernetes cluster.
-    olm.skipRange: '>=4.8.0 <4.22.0'
+    olm.skipRange: '>=4.8.0 <5.0.0'
     operatorframework.io/suggested-namespace: metallb-system
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -452,7 +452,7 @@ metadata:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
-  name: metallb-operator.v4.22.0
+  name: metallb-operator.v5.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -924,16 +924,16 @@ spec:
                       - /manager
                     env:
                       - name: SPEAKER_IMAGE
-                        value: quay.io/openshift/origin-metallb:4.22
+                        value: quay.io/openshift/origin-metallb:5.0
                       - name: CONTROLLER_IMAGE
-                        value: quay.io/openshift/origin-metallb:4.22
+                        value: quay.io/openshift/origin-metallb:5.0
                       - name: FRR_IMAGE
-                        value: quay.io/openshift/origin-metallb-frr:4.22
+                        value: quay.io/openshift/origin-metallb-frr:5.0
                       - name: TLS_CIPHER_SUITES
                       - name: TLS_CURVE_PREFERENCES
                       - name: TLS_MIN_VERSION
                       - name: FRRK8S_IMAGE
-                        value: quay.io/openshift/origin-metallb-frr:4.22
+                        value: quay.io/openshift/origin-metallb-frr:5.0
                       - name: OPERATOR_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -964,7 +964,7 @@ spec:
                         value: "true"
                       - name: CNO_MIN_FRRK8S_VERSION
                         value: "4.17.0-0"
-                    image: quay.io/openshift/origin-metallb-operator:4.22
+                    image: quay.io/openshift/origin-metallb-operator:5.0
                     name: manager
                     ports:
                       - containerPort: 9443
@@ -1049,7 +1049,7 @@ spec:
                             key: TLS_CURVE_PREFERENCES
                             name: metallb-tls-config
                             optional: false
-                    image: quay.io/openshift/origin-metallb:4.22
+                    image: quay.io/openshift/origin-metallb:5.0
                     livenessProbe:
                       failureThreshold: 3
                       httpGet:
@@ -1408,7 +1408,7 @@ spec:
     - metallb-operator
   labels:
     olm-owner-enterprise-app: metallb-operator
-    olm-status-descriptors: metallb-operator.v4.22.0
+    olm-status-descriptors: metallb-operator.v5.0.0
   links:
     - name: MetalLB Operator
       url: https://github.com/openshift/metallb-operator
@@ -1421,7 +1421,7 @@ spec:
   minKubeVersion: 1.26.0
   provider:
     name: Red Hat
-  version: 4.22.0
+  version: 5.0.0
   webhookdefinitions:
     - admissionReviewVersions:
         - v1
