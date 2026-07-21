@@ -18,6 +18,7 @@ package helm
 
 import (
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
+	"github.com/metallb/metallb-operator/pkg/openshift"
 	"github.com/metallb/metallb-operator/pkg/params"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -83,6 +84,16 @@ func (h *MetalLBChart) Objects(envConfig params.EnvConfig, crdConfig *metallbv1b
 			}
 			err := unstructured.SetNestedMap(obj.Object, controllerSecurityContext, "spec", "template", "spec", "securityContext")
 			if err != nil {
+				return nil, err
+			}
+		}
+		if isSpeakerDaemonSet(obj) && envConfig.IsOpenshift {
+			annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+			if annotations == nil {
+				annotations = make(map[string]string)
+			}
+			annotations["openshift.io/required-scc"] = openshift.SpeakerSCCName
+			if err := unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations"); err != nil {
 				return nil, err
 			}
 		}

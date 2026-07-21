@@ -81,6 +81,7 @@ var EmbeddedFRRK8sSupportNotAvailable = errors.New("current CNO version does not
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=create;delete;get;update;patch;list;watch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=create;delete;get;update;patch;list;watch
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=networks,verbs=get;list;watch;update;
+// +kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=metallb-speaker,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=config.openshift.io,resources=apiservers;clusteroperators,verbs=get;list;watch;
 
 func (r *MetalLBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -221,6 +222,14 @@ func (r *MetalLBReconciler) syncMetalLBResources(ctx context.Context, config *me
 		err := r.Delete(context.Background(), obj)
 		if err != nil && !apierrors.IsNotFound(err) {
 			return errors.Wrapf(err, "could not delete (%s) %s/%s", obj.GroupVersionKind(), obj.GetNamespace(), obj.GetName())
+		}
+	}
+
+	if r.EnvConfig.IsOpenshift {
+		scc := openshift.SpeakerSCC()
+		applyConfig := client.ApplyConfigurationFromUnstructured(scc)
+		if err := r.Apply(ctx, applyConfig, client.FieldOwner(fieldManager), client.ForceOwnership); err != nil {
+			return errors.Wrapf(err, "could not apply SCC %s", openshift.SpeakerSCCName)
 		}
 	}
 

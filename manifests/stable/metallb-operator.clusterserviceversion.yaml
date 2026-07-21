@@ -747,6 +747,20 @@ spec:
                 - patch
                 - update
                 - watch
+            - apiGroups:
+                - security.openshift.io
+              resourceNames:
+                - metallb-speaker
+              resources:
+                - securitycontextconstraints
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
           serviceAccountName: manager-account
         - rules:
             - apiGroups:
@@ -1287,7 +1301,7 @@ spec:
             - apiGroups:
                 - security.openshift.io
               resourceNames:
-                - privileged
+                - metallb-speaker
               resources:
                 - securitycontextconstraints
               verbs:
