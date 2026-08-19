@@ -355,10 +355,15 @@ func metalLBFrrk8sValues(envConfig params.EnvConfig, crdConfig *metallbv1beta1.M
 	if params.BGPType(crdConfig, envConfig) == metallbv1beta1.FRRK8sExternalMode {
 		external = true
 	}
+	secretPassthrough := false
+	if crdConfig.Spec.FRRK8SConfig != nil {
+		secretPassthrough = crdConfig.Spec.FRRK8SConfig.SecretPassthrough
+	}
 	frrk8sValuesMap := map[string]interface{}{
-		"enabled":   enabled,
-		"external":  external,
-		"namespace": frrK8sNamespace,
+		"enabled":           enabled,
+		"external":          external,
+		"namespace":         frrK8sNamespace,
+		"secretPassthrough": secretPassthrough,
 	}
 	return frrk8sValuesMap
 }
