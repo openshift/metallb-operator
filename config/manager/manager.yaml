@@ -3,6 +3,11 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
+  annotations:
+    # Allow pods in this namespace carrying the target.workload.openshift.io/management
+    # annotation to be handled by OpenShift Workload Partitioning. Inert where
+    # Workload Partitioning is not enabled.
+    workload.openshift.io/allowed: management
   name: system
 ---
 apiVersion: apps/v1
@@ -21,6 +26,12 @@ spec:
     metadata:
       labels:
         control-plane: controller-manager
+      annotations:
+        # Make the operator eligible for OpenShift Workload Partitioning so it is
+        # pinned to the reserved (management) CPU pool when enabled. The
+        # PreferredDuringScheduling effect makes this a no-op where Workload
+        # Partitioning is not enabled.
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       serviceAccountName: manager-account
       containers:

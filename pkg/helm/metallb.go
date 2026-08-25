@@ -92,6 +92,13 @@ func (h *MetalLBChart) Objects(envConfig params.EnvConfig, crdConfig *metallbv1b
 				return nil, err
 			}
 		}
+		// Make the operand pods eligible for OpenShift Workload Partitioning so
+		// they are pinned to the reserved (management) CPU pool when enabled.
+		if envConfig.IsOpenshift && (isControllerDeployment(obj) || isSpeakerDaemonSet(obj)) {
+			if err := setWorkloadPartitioningAnnotation(obj); err != nil {
+				return nil, err
+			}
+		}
 		if isServiceMonitor(obj) && envConfig.IsOpenshift {
 			err := setOcpMonitorFields(obj)
 			if err != nil {

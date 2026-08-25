@@ -469,6 +469,56 @@ func TestSpeakerSCCOnOpenShift(t *testing.T) {
 	}
 }
 
+func TestWorkloadPartitioningAnnotationOnOpenShift(t *testing.T) {
+	tests := []struct {
+		name        string
+		isOpenshift bool
+		expectAnn   bool
+	}{
+		{"OCP sets workload partitioning annotation", true, true},
+		{"non-OCP excludes workload partitioning annotation", false, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			chart, err := NewMetalLBChart(metalLBChartPath, metalLBChartName, MetalLBTestNameSpace, nil)
+			g.Expect(err).To(BeNil())
+
+			metallb := &metallbv1beta1.MetalLB{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "metallb",
+					Namespace: MetalLBTestNameSpace,
+				},
+			}
+
+			envConfig := defaultEnvConfig
+			envConfig.IsOpenshift = tt.isOpenshift
+
+			objs, err := chart.Objects(envConfig, metallb)
+			g.Expect(err).To(BeNil())
+
+			var controllerChecked, speakerChecked bool
+			for _, obj := range objs {
+				if isControllerDeployment(obj) {
+					controllerChecked = true
+					g.Expect(hasWorkloadPartitioningAnnotation(obj)).To(Equal(tt.expectAnn))
+				}
+				if isSpeakerDaemonSet(obj) {
+					speakerChecked = true
+					g.Expect(hasWorkloadPartitioningAnnotation(obj)).To(Equal(tt.expectAnn))
+				}
+			}
+			g.Expect(controllerChecked).To(BeTrue())
+			g.Expect(speakerChecked).To(BeTrue())
+		})
+	}
+}
+
+func hasWorkloadPartitioningAnnotation(obj *unstructured.Unstructured) bool {
+	ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+	return ann[WorkloadPartitioningManagementAnnotation] == `{"effect": "PreferredDuringScheduling"}`
+}
+
 func validateObject(testcase, name string, obj *unstructured.Unstructured) error {
 	goldenFile := filepath.Join("testdata", testcase+"-"+name+".golden")
 	j, err := json.MarshalIndent(obj, "", "    ")
