@@ -22,7 +22,8 @@
         "template": {
             "metadata": {
                 "annotations": {
-                    "openshift.io/required-scc": "metallb-speaker"
+                    "openshift.io/required-scc": "metallb-speaker",
+                    "target.workload.openshift.io/management": "{\"effect\": \"PreferredDuringScheduling\"}"
                 },
                 "labels": {
                     "app": "metallb",

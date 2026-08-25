@@ -17,6 +17,12 @@ spec:
       labels:
         app: metallb
         component: webhook-server
+      annotations:
+        # Make the webhook server eligible for OpenShift Workload Partitioning so
+        # it is pinned to the reserved (management) CPU pool when enabled. The
+        # PreferredDuringScheduling effect makes this a no-op where Workload
+        # Partitioning is not enabled.
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       containers:
       - args:
