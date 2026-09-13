@@ -133,6 +133,14 @@ func (h *FRRK8SChart) Objects(envConfig params.EnvConfig, crdConfig *metallbv1be
 			}
 		}
 
+		// Make the frr-k8s pods eligible for OpenShift Workload Partitioning so
+		// they are pinned to the reserved (management) CPU pool when enabled.
+		if envConfig.IsOpenshift && (isFRRK8SDaemonset(obj) || isFRRK8SWebhookDeployment(obj)) {
+			if err := setWorkloadPartitioningAnnotation(obj); err != nil {
+				return nil, err
+			}
+		}
+
 		res = append(res, obj)
 	}
 	return res, nil

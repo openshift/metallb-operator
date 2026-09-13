@@ -118,6 +118,30 @@ func ocpServiceMonitorTLSConfig(component, namespace string) map[string]interfac
 	}
 }
 
+// WorkloadPartitioningManagementAnnotation is the pod annotation used to make a
+// workload eligible for OpenShift Workload Partitioning, pinning it to the
+// cluster's reserved (management) CPU pool when cpuPartitioningMode is enabled.
+const WorkloadPartitioningManagementAnnotation = "target.workload.openshift.io/management"
+
+// workloadPartitioningManagementValue uses the "PreferredDuringScheduling"
+// effect so the annotation is a no-op on clusters where Workload Partitioning is
+// not enabled. This makes it safe to always set on OpenShift.
+const workloadPartitioningManagementValue = `{"effect": "PreferredDuringScheduling"}`
+
+// setWorkloadPartitioningAnnotation adds the OpenShift Workload Partitioning
+// annotation to the pod template of the given workload (Deployment/DaemonSet).
+func setWorkloadPartitioningAnnotation(obj *unstructured.Unstructured) error {
+	annotations, _, err := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+	if err != nil {
+		return err
+	}
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+	annotations[WorkloadPartitioningManagementAnnotation] = workloadPartitioningManagementValue
+	return unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
+}
+
 func setRequiredSCCAnnotationForSpeaker(obj *unstructured.Unstructured) error {
 	annotations, _, err := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 	if err != nil {

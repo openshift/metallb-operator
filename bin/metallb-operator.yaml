@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  annotations:
+    workload.openshift.io/allowed: management
   labels:
     control-plane: controller-manager
   name: metallb-system
@@ -4986,6 +4988,8 @@ spec:
       control-plane: controller-manager
   template:
     metadata:
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
       labels:
         control-plane: controller-manager
     spec:
@@ -5064,6 +5068,8 @@ spec:
       component: webhook-server
   template:
     metadata:
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
       labels:
         app: metallb
         component: webhook-server

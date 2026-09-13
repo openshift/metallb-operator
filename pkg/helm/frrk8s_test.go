@@ -171,3 +171,48 @@ func TestParseFRRK8SOCPSecureMetrics(t *testing.T) {
 		}
 	}
 }
+
+func TestFRRK8SWorkloadPartitioningAnnotationOnOpenShift(t *testing.T) {
+	tests := []struct {
+		name        string
+		isOpenshift bool
+		expectAnn   bool
+	}{
+		{"OCP sets workload partitioning annotation", true, true},
+		{"non-OCP excludes workload partitioning annotation", false, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			chart, err := NewFRRK8SChart(frrk8sHelmChartPath, frrk8sHelmChartName, MetalLBTestNameSpace)
+			g.Expect(err).To(BeNil())
+
+			metallb := &metallbv1beta1.MetalLB{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "metallb",
+					Namespace: MetalLBTestNameSpace,
+				},
+			}
+
+			envConfig := defaultEnvConfig
+			envConfig.IsOpenshift = tt.isOpenshift
+
+			objs, err := chart.Objects(envConfig, metallb)
+			g.Expect(err).To(BeNil())
+
+			var daemonChecked, statusCleanerChecked bool
+			for _, obj := range objs {
+				if isFRRK8SDaemonset(obj) {
+					daemonChecked = true
+					g.Expect(hasWorkloadPartitioningAnnotation(obj)).To(Equal(tt.expectAnn))
+				}
+				if isFRRK8SWebhookDeployment(obj) {
+					statusCleanerChecked = true
+					g.Expect(hasWorkloadPartitioningAnnotation(obj)).To(Equal(tt.expectAnn))
+				}
+			}
+			g.Expect(daemonChecked).To(BeTrue())
+			g.Expect(statusCleanerChecked).To(BeTrue())
+		})
+	}
+}
