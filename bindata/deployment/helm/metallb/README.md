@@ -17,7 +17,7 @@ Kubernetes: `>= 1.19.0-0`
 | Repository | Name | Version |
 |------------|------|---------|
 |  | crds | 0.0.0 |
-| https://metallb.github.io/frr-k8s | frr-k8s | 0.0.22 |
+| https://metallb.github.io/frr-k8s | frr-k8s | 0.0.25 |
 
 ## Values
 
@@ -34,6 +34,7 @@ Kubernetes: `>= 1.19.0-0`
 | controller.livenessProbe.failureThreshold | int | `3` |  |
 | controller.livenessProbe.initialDelaySeconds | int | `10` |  |
 | controller.livenessProbe.periodSeconds | int | `10` |  |
+| controller.livenessProbe.port | int | `17472` |  |
 | controller.livenessProbe.successThreshold | int | `1` |  |
 | controller.livenessProbe.timeoutSeconds | int | `1` |  |
 | controller.logLevel | string | `"info"` | Controller log level. Must be one of: `all`, `debug`, `info`, `warn`, `error` or `none` |
@@ -44,9 +45,11 @@ Kubernetes: `>= 1.19.0-0`
 | controller.readinessProbe.failureThreshold | int | `3` |  |
 | controller.readinessProbe.initialDelaySeconds | int | `10` |  |
 | controller.readinessProbe.periodSeconds | int | `10` |  |
+| controller.readinessProbe.port | int | `17472` |  |
 | controller.readinessProbe.successThreshold | int | `1` |  |
 | controller.readinessProbe.timeoutSeconds | int | `1` |  |
 | controller.resources | object | `{}` |  |
+| controller.revisionHistoryLimit | int | `10` |  |
 | controller.runtimeClassName | string | `""` |  |
 | controller.securityContext.fsGroup | int | `65534` |  |
 | controller.securityContext.runAsNonRoot | bool | `true` |  |
@@ -55,15 +58,15 @@ Kubernetes: `>= 1.19.0-0`
 | controller.serviceAccount.create | bool | `true` |  |
 | controller.serviceAccount.name | string | `""` |  |
 | controller.strategy.type | string | `"RollingUpdate"` |  |
-| controller.tlsCipherSuites | string | `""` |  |
-| controller.tlsMinVersion | string | `"VersionTLS12"` |  |
 | controller.tolerations | list | `[]` |  |
 | controller.webhookMode | string | `"enabled"` |  |
 | crds.enabled | bool | `true` |  |
 | crds.validationFailurePolicy | string | `"Fail"` |  |
-| frrk8s.enabled | bool | `false` |  |
-| frrk8s.external | bool | `false` |  |
-| frrk8s.namespace | string | `""` |  |
+| frr-k8s.prometheus.serviceMonitor.enabled | bool | `false` | Enable Prometheus ServiceMonitor for frr-k8s metrics. |
+| frrk8s.enabled | bool | `true` | If set, enables frrk8s as a backend. This is mutually exclusive to frr mode. |
+| frrk8s.external | bool | `false` | If true, uses an external frr-k8s installation instead of the bundled subchart. |
+| frrk8s.namespace | string | `""` | Namespace where external frr-k8s is installed (only used when external=true). |
+| frrk8s.secretPassthrough | bool | `false` | Pass BGP secret references to frr-k8s without resolving them. The secret must exist in the frr-k8s namespace. Only used when external=true. |
 | fullnameOverride | string | `""` |  |
 | imagePullSecrets | list | `[]` |  |
 | loadBalancerClass | string | `""` |  |
@@ -71,8 +74,7 @@ Kubernetes: `>= 1.19.0-0`
 | networkpolicies.apiPort | int | `6443` |  |
 | networkpolicies.defaultDeny | bool | `false` |  |
 | networkpolicies.enabled | bool | `false` |  |
-| prometheus.controllerMetricsTLSSecret | string | `""` |  |
-| prometheus.metricsPort | int | `7472` |  |
+| prometheus.metricsPort | int | `9120` |  |
 | prometheus.namespace | string | `""` |  |
 | prometheus.podMonitor.additionalLabels | object | `{}` |  |
 | prometheus.podMonitor.annotations | object | `{}` |  |
@@ -81,6 +83,7 @@ Kubernetes: `>= 1.19.0-0`
 | prometheus.podMonitor.jobLabel | string | `"app.kubernetes.io/name"` |  |
 | prometheus.podMonitor.metricRelabelings | list | `[]` |  |
 | prometheus.podMonitor.relabelings | list | `[]` |  |
+| prometheus.podMonitor.tlsConfig.insecureSkipVerify | bool | `true` |  |
 | prometheus.prometheusRule.additionalLabels | object | `{}` |  |
 | prometheus.prometheusRule.addressPoolExhausted.enabled | bool | `true` |  |
 | prometheus.prometheusRule.addressPoolExhausted.excludePools | string | `""` |  |
@@ -103,9 +106,6 @@ Kubernetes: `>= 1.19.0-0`
 | prometheus.prometheusRule.staleConfig.enabled | bool | `true` |  |
 | prometheus.prometheusRule.staleConfig.labels.severity | string | `"warning"` |  |
 | prometheus.rbacPrometheus | bool | `true` |  |
-| prometheus.rbacProxy.pullPolicy | string | `nil` |  |
-| prometheus.rbacProxy.repository | string | `"gcr.io/kubebuilder/kube-rbac-proxy"` |  |
-| prometheus.rbacProxy.tag | string | `"v0.12.0"` |  |
 | prometheus.scrapeAnnotations | bool | `false` |  |
 | prometheus.serviceAccount | string | `""` |  |
 | prometheus.serviceMonitor.controller.additionalLabels | object | `{}` |  |
@@ -119,19 +119,23 @@ Kubernetes: `>= 1.19.0-0`
 | prometheus.serviceMonitor.speaker.additionalLabels | object | `{}` |  |
 | prometheus.serviceMonitor.speaker.annotations | object | `{}` |  |
 | prometheus.serviceMonitor.speaker.tlsConfig.insecureSkipVerify | bool | `true` |  |
-| prometheus.speakerMetricsTLSSecret | string | `""` |  |
 | rbac.create | bool | `true` |  |
 | speaker.affinity | object | `{}` |  |
+| speaker.bgpDebounceTimeout | string | `nil` | BGP debounce timeout for FRR configuration reloads, in milliseconds. Only applies when BGP type is frr. Default (when unset) is 3000 ms. This feature is experimental |
 | speaker.enabled | bool | `true` |  |
 | speaker.excludeInterfaces.enabled | bool | `true` |  |
 | speaker.extraContainers | list | `[]` |  |
-| speaker.frr.enabled | bool | `true` |  |
+| speaker.frr.dockerStartPath | string | `"/usr/lib/frr/docker-start"` | Path to the docker-start script inside the FRR container. Override this when using an FRR image (e.g. Docker Hardened Images) that places docker-start at a different location. |
+| speaker.frr.enabled | bool | `false` |  |
 | speaker.frr.image.pullPolicy | string | `nil` |  |
 | speaker.frr.image.repository | string | `"quay.io/frrouting/frr"` |  |
-| speaker.frr.image.tag | string | `"10.4.1"` |  |
-| speaker.frr.metricsPort | int | `7473` |  |
+| speaker.frr.image.tag | string | `"10.5.3"` |  |
+| speaker.frr.metricsPort | int | `9121` |  |
 | speaker.frr.resources | object | `{}` |  |
+| speaker.frr.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"add":["NET_ADMIN","NET_RAW","SYS_ADMIN","NET_BIND_SERVICE"]},"readOnlyRootFilesystem":true}` | Security context for the FRR container. |
+| speaker.frr.tiniPath | string | `"/sbin/tini"` | Path to the tini binary inside the FRR container. Override this when using an FRR image (e.g. Docker Hardened Images) that places tini at a different location. |
 | speaker.frrMetrics.resources | object | `{}` |  |
+| speaker.gratuitousARPInterval | string | `nil` | Interval in seconds for periodic gratuitous ARP/NDP announcements. Unset or 0 (default) disables periodic announcements. |
 | speaker.ignoreExcludeLB | bool | `false` |  |
 | speaker.image.pullPolicy | string | `nil` |  |
 | speaker.image.repository | string | `"quay.io/metallb/speaker"` |  |
@@ -144,6 +148,7 @@ Kubernetes: `>= 1.19.0-0`
 | speaker.livenessProbe.failureThreshold | int | `3` |  |
 | speaker.livenessProbe.initialDelaySeconds | int | `10` |  |
 | speaker.livenessProbe.periodSeconds | int | `10` |  |
+| speaker.livenessProbe.port | int | `17472` |  |
 | speaker.livenessProbe.successThreshold | int | `1` |  |
 | speaker.livenessProbe.timeoutSeconds | int | `1` |  |
 | speaker.logLevel | string | `"info"` | Speaker log level. Must be one of: `all`, `debug`, `info`, `warn`, `error` or `none` |
@@ -158,10 +163,12 @@ Kubernetes: `>= 1.19.0-0`
 | speaker.readinessProbe.failureThreshold | int | `3` |  |
 | speaker.readinessProbe.initialDelaySeconds | int | `10` |  |
 | speaker.readinessProbe.periodSeconds | int | `10` |  |
+| speaker.readinessProbe.port | int | `17472` |  |
 | speaker.readinessProbe.successThreshold | int | `1` |  |
 | speaker.readinessProbe.timeoutSeconds | int | `1` |  |
 | speaker.reloader.resources | object | `{}` |  |
 | speaker.resources | object | `{}` |  |
+| speaker.revisionHistoryLimit | int | `10` |  |
 | speaker.runtimeClassName | string | `""` |  |
 | speaker.securityContext | object | `{}` |  |
 | speaker.serviceAccount.annotations | object | `{}` |  |
@@ -173,6 +180,11 @@ Kubernetes: `>= 1.19.0-0`
 | speaker.tolerateMaster | bool | `true` |  |
 | speaker.tolerations | list | `[]` |  |
 | speaker.updateStrategy.type | string | `"RollingUpdate"` |  |
+| tls.cipherSuites | string | `""` | Comma-separated list of TLS cipher suites. If empty, uses Go defaults. Only applies to TLS 1.2. |
+| tls.controllerMetricsTLSSecret | string | `""` | The name of the secret to be mounted in the controller pod to provide TLS certificates for metrics endpoints. If not present, a self-signed certificate is auto-generated. |
+| tls.curvePreferences | string | `""` | Comma-separated list of numeric CurveID values (e.g. 29,4588). See https://pkg.go.dev/crypto/tls#CurveID. If empty, uses Go defaults. |
+| tls.minVersion | string | `""` | Minimum TLS version (VersionTLS12 or VersionTLS13). Defaults to VersionTLS13. |
+| tls.speakerMetricsTLSSecret | string | `""` | The name of the secret to be mounted in the speaker pod to provide TLS certificates for metrics endpoints. If not present, a self-signed certificate is auto-generated. |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.10.0](https://github.com/norwoodj/helm-docs/releases/v1.10.0)
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
