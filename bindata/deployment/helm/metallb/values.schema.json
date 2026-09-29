@@ -182,6 +182,14 @@
         "rbacPrometheus": { "type": "boolean" },
         "serviceAccount": { "type": "string" },
         "namespace": { "type": "string" },
+        "rbacProxy": {
+          "description": "kube-rbac-proxy configuration",
+          "type": "object",
+          "properties": {
+            "repository": { "type": "string" },
+            "tag": { "type": "string" }
+          }
+        },
         "podMonitor": {
           "description": "Prometheus Operator PodMonitors",
           "type": "object",
@@ -206,8 +214,7 @@
               "items": {
                 "type": "object"
               }
-            },
-            "tlsConfig": { "type": "object" }
+            }
           }
         },
         "serviceMonitor": {
@@ -307,10 +314,6 @@
               },
               "required": [ "type" ]
             },
-            "revisionHistoryLimit": {
-              "type": "integer",
-              "minimum": 0
-            },
             "command" : {
               "type": "string"
             },
@@ -364,12 +367,6 @@
             "ignoreExcludeLB": {
               "type": "boolean"
             },
-            "bgpDebounceTimeout": {
-              "anyOf": [
-                { "type": "integer", "minimum": 1 },
-                { "type": "null" }
-              ]
-            },
             "updateStrategy": {
               "type": "object",
               "properties": {
@@ -378,10 +375,6 @@
                 }
               },
               "required": [ "type" ]
-            },
-            "revisionHistoryLimit": {
-              "type": "integer",
-              "minimum": 0
             },
             "runtimeClassName": {
               "type": "string"
@@ -402,10 +395,7 @@
                 "image": { "$ref": "#/definitions/component/properties/image" },
                 "metricsPort": { "type": "integer" },
                 "secureMetricsPort": { "type": "integer" },
-                "resources:": { "type": "object" },
-                "tiniPath": { "type": "string" },
-                "dockerStartPath": { "type": "string" },
-                "securityContext": { "type": "object" }
+                "resources:": { "type": "object" }
               },
               "required": [ "enabled" ]
             },

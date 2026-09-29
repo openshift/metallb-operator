@@ -9,7 +9,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: bfdprofiles.metallb.io
 spec:
   group: metallb.io
@@ -130,7 +130,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: bgpadvertisements.metallb.io
 spec:
   group: metallb.io
@@ -411,7 +411,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: bgppeers.metallb.io
 spec:
   conversion:
@@ -486,7 +486,7 @@ spec:
                 type: string
               myASN:
                 description: AS number to use for the local end of the session.
-                format: int64
+                format: int32
                 maximum: 4294967295
                 minimum: 0
                 type: integer
@@ -526,7 +526,7 @@ spec:
                 type: string
               peerASN:
                 description: AS number to expect from the remote end of the session.
-                format: int64
+                format: int32
                 maximum: 4294967295
                 minimum: 0
                 type: integer
@@ -635,14 +635,14 @@ spec:
                 type: string
               ebgpMultiHop:
                 description: To set if the BGPPeer is multi-hops away. Needed for
-                  FRR-based modes (FRR-K8s, FRR) only.
+                  FRR mode only.
                 type: boolean
               enableGracefulRestart:
                 description: |-
                   EnableGracefulRestart allows BGP peer to continue to forward data packets
                   along known routes while the routing protocol information is being
                   restored. This field is immutable because it requires restart of the BGP
-                  session. Supported for FRR-based modes (FRR-K8s, FRR) only.
+                  session. Supported for FRR mode only.
                 type: boolean
                 x-kubernetes-validations:
                 - message: EnableGracefulRestart cannot be changed after creation
@@ -661,20 +661,9 @@ spec:
               keepaliveTime:
                 description: Requested BGP keepalive time, per RFC4271.
                 type: string
-              localASN:
-                description: |-
-                  LocalASN allows advertising a different AS number to the peer using BGP's
-                  local-as feature. When set, MetalLB will advertise this ASN to the peer
-                  via "neighbor <peer> local-as <ASN> no-prepend replace-as", overriding
-                  the router-level MyASN for this specific session.
-                  Not supported in native BGP mode.
-                format: int64
-                maximum: 4294967295
-                minimum: 1
-                type: integer
               myASN:
                 description: AS number to use for the local end of the session.
-                format: int64
+                format: int32
                 maximum: 4294967295
                 minimum: 0
                 type: integer
@@ -757,7 +746,7 @@ spec:
                 description: |-
                   AS number to expect from the remote end of the session.
                   ASN and DynamicASN are mutually exclusive and one of them must be specified.
-                format: int64
+                format: int32
                 maximum: 4294967295
                 minimum: 0
                 type: integer
@@ -797,7 +786,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.17.3
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: bgpsessionstates.frrk8s.metallb.io
 spec:
   group: frrk8s.metallb.io
@@ -874,7 +863,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: communities.metallb.io
 spec:
   group: metallb.io
@@ -939,7 +928,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: configurationstates.metallb.io
 spec:
   group: metallb.io
@@ -1073,7 +1062,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.17.3
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: frrconfigurations.frrk8s.metallb.io
 spec:
   group: frrk8s.metallb.io
@@ -1195,7 +1184,7 @@ spec:
                         asn:
                           description: ASN is the AS number to use for the local end
                             of the session.
-                          format: int64
+                          format: int32
                           maximum: 4294967295
                           minimum: 0
                           type: integer
@@ -1229,7 +1218,7 @@ spec:
                                 description: |-
                                   ASN is the AS number to use for the local end of the session.
                                   ASN and DynamicASN are mutually exclusive and one of them must be specified.
-                                format: int64
+                                format: int32
                                 maximum: 4294967295
                                 minimum: 0
                                 type: integer
@@ -1255,9 +1244,8 @@ spec:
                               disableMP:
                                 default: false
                                 description: |-
-                                  DisableMP is no longer used and has no effect.
-                                  Use DualStackAddressFamily instead to enable the neighbor for both IPv4 and IPv6 address families.
-                                  Deprecated: This field is ignored. Use DualStackAddressFamily instead.
+                                  To set if we want to disable MP BGP that will separate IPv4 and IPv6 route exchanges into distinct BGP sessions.
+                                  Deprecated: DisableMP is deprecated in favor of dualStackAddressFamily.
                                 type: boolean
                               dualStackAddressFamily:
                                 default: false
@@ -1307,18 +1295,6 @@ spec:
                                   KeepaliveTime is the requested BGP keepalive time, per RFC4271.
                                   Defaults to 60s.
                                 type: string
-                              localASN:
-                                description: |-
-                                  LocalASN allows advertising a different AS number to the peer using BGP's
-                                  local-as feature. When set, FRR will advertise this ASN to the peer
-                                  via "neighbor <peer> local-as <ASN> no-prepend replace-as", overriding
-                                  the router-level ASN for this specific session.
-                                  Note: this field is only applicable to eBGP sessions (where the peer ASN differs
-                                  from the router ASN). Setting it on an iBGP session is rejected.
-                                format: int64
-                                maximum: 4294967295
-                                minimum: 1
-                                type: integer
                               password:
                                 description: |-
                                   Password to be used for establishing the BGP session.
@@ -1573,7 +1549,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.17.3
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: frrnodestates.frrk8s.metallb.io
 spec:
   group: frrk8s.metallb.io
@@ -1638,7 +1614,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: ipaddresspools.metallb.io
 spec:
   group: metallb.io
@@ -1876,7 +1852,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: l2advertisements.metallb.io
 spec:
   group: metallb.io
@@ -2049,88 +2025,10 @@ spec:
                   type: object
                   x-kubernetes-map-type: atomic
                 type: array
-              preferredNodeSelectors:
-                description: |-
-                  PreferredNodeSelectors allows specifying soft node preferences for L2
-                  leader election. Nodes matching these selectors receive a higher score
-                  and are preferred as the announcing node. If no preferred node is
-                  available, any eligible node (per NodeSelectors) can announce.
-                  Modeled after Kubernetes PreferredSchedulingTerm.
-                items:
-                  description: |-
-                    PreferredNodeSelector expresses a weighted soft preference for nodes.
-                    This follows the Kubernetes PreferredSchedulingTerm pattern where Weight
-                    controls relative priority and Preference selects matching nodes.
-                  properties:
-                    preference:
-                      description: |-
-                        Preference selects the nodes that receive this weight. An empty
-                        selector matches every node. Preferences only apply to nodes
-                        already eligible under the advertisement's NodeSelectors.
-                      properties:
-                        matchExpressions:
-                          description: matchExpressions is a list of label selector
-                            requirements. The requirements are ANDed.
-                          items:
-                            description: |-
-                              A label selector requirement is a selector that contains values, a key, and an operator that
-                              relates the key and values.
-                            properties:
-                              key:
-                                description: key is the label key that the selector
-                                  applies to.
-                                type: string
-                              operator:
-                                description: |-
-                                  operator represents a key's relationship to a set of values.
-                                  Valid operators are In, NotIn, Exists and DoesNotExist.
-                                type: string
-                              values:
-                                description: |-
-                                  values is an array of string values. If the operator is In or NotIn,
-                                  the values array must be non-empty. If the operator is Exists or DoesNotExist,
-                                  the values array must be empty. This array is replaced during a strategic
-                                  merge patch.
-                                items:
-                                  type: string
-                                type: array
-                                x-kubernetes-list-type: atomic
-                            required:
-                            - key
-                            - operator
-                            type: object
-                          type: array
-                          x-kubernetes-list-type: atomic
-                        matchLabels:
-                          additionalProperties:
-                            type: string
-                          description: |-
-                            matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
-                            map is equivalent to an element of matchExpressions, whose key field is "key", the
-                            operator is "In", and the values array contains only "value". The requirements are ANDed.
-                          type: object
-                      type: object
-                      x-kubernetes-map-type: atomic
-                    weight:
-                      description: |-
-                        Weight associated with matching the corresponding preference,
-                        in the range 1-100. Higher weights rank the node higher in the
-                        L2 leader election. Weights from selectors that both match a
-                        node sum together.
-                      format: int32
-                      maximum: 100
-                      minimum: 1
-                      type: integer
-                  required:
-                  - preference
-                  - weight
-                  type: object
-                type: array
               serviceSelectors:
                 description: |-
                   ServiceSelectors limits the set of services that will be advertised via this advertisement.
                   If empty, all services from the selected pools are advertised.
-                  Services matching the selectors cannot use the allow-shared-ip annotation.
                 items:
                   description: |-
                     A label selector is a label query over a set of resources. The result of matchLabels and
@@ -4344,12 +4242,17 @@ spec:
                   L2-advertised services. When unset or set to 0, periodic announcements
                   are disabled and only the announcements triggered by service events are
                   sent. The value must be a valid Go duration string (e.g. "30s", "1m")
-                  and, when non-zero, must be at least 1s to avoid flooding the network
-                  with announcements.
+                  and, when non-zero, must be a whole number of seconds between 1s and
+                  2147483647s to match the speaker flag.
                 type: string
                 x-kubernetes-validations:
-                - message: speakerGratuitousARPInterval must be 0 or at least 1s
-                  rule: duration(self) == duration('0s') || duration(self) >= duration('1s')
+                - message: speakerGratuitousARPInterval must be 0 or between 1s and
+                    2147483647s
+                  rule: duration(self) == duration('0s') || (duration(self).getSeconds()
+                    >= 1 && duration(self).getSeconds() <= 2147483647)
+                - message: speakerGratuitousARPInterval must contain a whole number
+                    of seconds
+                  rule: duration(self).getMilliseconds() % 1000 == 0
               speakerTolerations:
                 description: |-
                   tolerations is a list of tolerations applied to MetalLB speaker
@@ -4463,7 +4366,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: servicebgpstatuses.metallb.io
 spec:
   group: metallb.io
@@ -4549,7 +4452,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: servicel2statuses.metallb.io
 spec:
   group: metallb.io
@@ -4924,7 +4827,7 @@ spec:
         - name: DEPLOY_KUBE_RBAC_PROXIES
           value: "false"
         - name: FRRK8S_IMAGE
-          value: quay.io/metallb/frr-k8s:v0.0.25
+          value: quay.io/metallb/frr-k8s:v0.0.22
         - name: FRRK8S_EXTERNAL_NAMESPACE
           value: frr-k8s-system
         - name: OPERATOR_NAMESPACE
@@ -5596,8 +5499,6 @@ rules:
   - frrk8s.metallb.io
   resources:
   - bgpsessionstates
-  - frrconfigurations
-  - frrnodestates
   verbs:
   - create
   - delete
@@ -5610,12 +5511,22 @@ rules:
   - frrk8s.metallb.io
   resources:
   - bgpsessionstates/status
-  - frrconfigurations/status
-  - frrnodestates/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - frrk8s.metallb.io
+  resources:
+  - frrconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - frrk8s.metallb.io
   resources:
@@ -5625,17 +5536,37 @@ rules:
 - apiGroups:
   - frrk8s.metallb.io
   resources:
-  - frrk8sconfigurations
+  - frrconfigurations/status
   verbs:
   - get
+  - patch
+  - update
+- apiGroups:
+  - frrk8s.metallb.io
+  resources:
+  - frrnodestates
+  verbs:
+  - create
+  - delete
+  - get
   - list
+  - patch
+  - update
   - watch
+- apiGroups:
+  - frrk8s.metallb.io
+  resources:
+  - frrnodestates/status
+  verbs:
+  - get
+  - patch
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/component: frr-k8s
+    app.kubernetes.io/component: kube-rbac-proxy
     app.kubernetes.io/created-by: frr-k8s
     app.kubernetes.io/instance: metrics-reader
     app.kubernetes.io/managed-by: kustomize
@@ -5652,7 +5583,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/component: frr-k8s
+    app.kubernetes.io/component: kube-rbac-proxy
     app.kubernetes.io/created-by: frr-k8s
     app.kubernetes.io/instance: proxy-role
     app.kubernetes.io/managed-by: kustomize
@@ -5932,9 +5863,6 @@ roleRef:
   name: pod-lister
 subjects:
 - kind: ServiceAccount
-  name: controller
-  namespace: metallb-system
-- kind: ServiceAccount
   name: speaker
   namespace: metallb-system
 ---
@@ -5995,7 +5923,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/component: frr-k8s
+    app.kubernetes.io/component: kube-rbac-proxy
     app.kubernetes.io/created-by: frr-k8s
     app.kubernetes.io/instance: proxy-rolebinding
     app.kubernetes.io/managed-by: kustomize

@@ -23,8 +23,6 @@ spec:
   endpoints:
     - port: {{ template "metrics.exposedportname" . }}
       honorLabels: true
-      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
-      scheme: "https"
       {{- if .Values.prometheus.serviceMonitor.metricRelabelings }}
       metricRelabelings:
       {{- toYaml .Values.prometheus.serviceMonitor.metricRelabelings | nindent 8 }}
@@ -35,22 +33,28 @@ spec:
       {{- end }}
       {{- if .Values.prometheus.serviceMonitor.interval }}
       interval: {{ .Values.prometheus.serviceMonitor.interval }}
-      {{- end }}
+      {{- end -}}
+{{ if .Values.prometheus.secureMetricsPort }}
+      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      scheme: "https"
 {{- if .Values.prometheus.serviceMonitor.speaker.tlsConfig }}
       tlsConfig:
-{{ toYaml .Values.prometheus.serviceMonitor.speaker.tlsConfig | indent 8 }}
+{{ toYaml .Values.prometheus.serviceMonitor.speaker.tlsConfig | indent 8 }}      
 {{- end }}
+{{ end }}
 {{- if .Values.speaker.frr.enabled }}
     - port: {{ template "metrics.exposedfrrportname" . }}
       honorLabels: true
-      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
-      scheme: "https"
+{{ if .Values.speaker.frr.secureMetricsPort }}
       {{- if .Values.prometheus.serviceMonitor.interval }}
       interval: {{ .Values.prometheus.serviceMonitor.interval }}
       {{- end }}
+      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      scheme: "https"
 {{- if .Values.prometheus.serviceMonitor.speaker.tlsConfig }}
       tlsConfig:
-{{ toYaml .Values.prometheus.serviceMonitor.speaker.tlsConfig | indent 8 }}
+{{ toYaml .Values.prometheus.serviceMonitor.speaker.tlsConfig | indent 8 }}      
+{{- end }}
 {{- end }}
 {{- end }}
   jobLabel: {{ .Values.prometheus.serviceMonitor.jobLabel | quote }}
@@ -64,15 +68,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  {{- if or .Values.prometheus.scrapeAnnotations .Values.prometheus.serviceMonitor.speaker.annotations }}
   annotations:
-    {{- if .Values.prometheus.scrapeAnnotations }}
     prometheus.io/scrape: "true"
-    prometheus.io/scheme: "https"
-    {{- end }}
-    {{- if .Values.prometheus.serviceMonitor.speaker.annotations }}
-    {{- toYaml .Values.prometheus.serviceMonitor.speaker.annotations | nindent 4 }}
-    {{- end }}
+  {{- if .Values.prometheus.serviceMonitor.speaker.annotations }}
+{{ toYaml .Values.prometheus.serviceMonitor.speaker.annotations | indent 4 }}
   {{- end }}
   labels:
     name: speaker-monitor-service
@@ -114,9 +113,6 @@ metadata:
 spec:
   endpoints:
     - port: {{ template "metrics.exposedportname" . }}
-      honorLabels: true
-      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
-      scheme: "https"
       {{- if .Values.prometheus.serviceMonitor.metricRelabelings }}
       metricRelabelings:
       {{- toYaml .Values.prometheus.serviceMonitor.metricRelabelings | nindent 8 }}
@@ -128,9 +124,14 @@ spec:
       {{- if .Values.prometheus.serviceMonitor.interval }}
       interval: {{ .Values.prometheus.serviceMonitor.interval }}
       {{- end }}
+      honorLabels: true
+{{- if .Values.prometheus.secureMetricsPort }}
+      bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      scheme: "https"
 {{- if .Values.prometheus.serviceMonitor.controller.tlsConfig }}
       tlsConfig:
-{{ toYaml .Values.prometheus.serviceMonitor.controller.tlsConfig | indent 8 }}
+{{ toYaml .Values.prometheus.serviceMonitor.controller.tlsConfig | indent 8 }}      
+{{- end }}
 {{- end }}
   jobLabel: {{ .Values.prometheus.serviceMonitor.jobLabel | quote }}
   namespaceSelector:
@@ -143,15 +144,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  {{- if or .Values.prometheus.scrapeAnnotations .Values.prometheus.serviceMonitor.controller.annotations }}
   annotations:
-    {{- if .Values.prometheus.scrapeAnnotations }}
     prometheus.io/scrape: "true"
-    prometheus.io/scheme: "https"
-    {{- end }}
-    {{- if .Values.prometheus.serviceMonitor.controller.annotations }}
-    {{- toYaml .Values.prometheus.serviceMonitor.controller.annotations | nindent 4 }}
-    {{- end }}
+  {{- if .Values.prometheus.serviceMonitor.controller.annotations }}
+{{ toYaml .Values.prometheus.serviceMonitor.controller.annotations | indent 4 }}
   {{- end }}
   labels:
     name: controller-monitor-service

@@ -30,7 +30,11 @@ spec:
   ingress:
     - ports:
         - protocol: TCP
+          {{- if .Values.prometheus.secureMetricsPort }}
           port: metricshttps
+          {{ else }}
+          port: {{ .Values.prometheus.metricsPort }}
+          {{- end }}
         {{- if and .Values.controller.webhookMode (ne .Values.controller.webhookMode "disabled") }}
         - protocol: TCP
           port: webhook-server

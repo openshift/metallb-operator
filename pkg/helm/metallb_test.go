@@ -292,7 +292,10 @@ func TestSpeakerGratuitousARPInterval(t *testing.T) {
 		expectSet bool
 	}{
 		{"unset", nil, "", false},
-		{"set", &metav1.Duration{Duration: 5 * time.Second}, "--gratuitous-arp-interval=5s", true},
+		{"zero", &metav1.Duration{}, "", false},
+		{"fractional", &metav1.Duration{Duration: 1500 * time.Millisecond}, "", false},
+		{"seconds", &metav1.Duration{Duration: 5 * time.Second}, "--gratuitous-arp-interval=5", true},
+		{"minutes", &metav1.Duration{Duration: time.Minute}, "--gratuitous-arp-interval=60", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -335,6 +338,65 @@ func TestSpeakerGratuitousARPInterval(t *testing.T) {
 			g.Expect(speakerFound).To(BeTrue())
 		})
 	}
+}
+
+func TestMetalLBChartUses4_22HealthProbes(t *testing.T) {
+	g := NewGomegaWithT(t)
+	chart, err := NewMetalLBChart(metalLBChartPath, metalLBChartName, MetalLBTestNameSpace, nil)
+	g.Expect(err).To(BeNil())
+
+	metallb := &metallbv1beta1.MetalLB{
+		ObjectMeta: metav1.ObjectMeta{Name: "metallb", Namespace: MetalLBTestNameSpace},
+	}
+	objects, err := chart.Objects(defaultEnvConfig, metallb)
+	g.Expect(err).To(BeNil())
+
+	checked := map[string]bool{}
+	checkContainer := func(container v1.Container, name string) {
+		for _, arg := range container.Args {
+			g.Expect(arg).NotTo(HavePrefix("--health-probe-port"))
+		}
+		g.Expect(container.LivenessProbe).NotTo(BeNil())
+		g.Expect(container.ReadinessProbe).NotTo(BeNil())
+		g.Expect(container.LivenessProbe.HTTPGet).NotTo(BeNil())
+		g.Expect(container.ReadinessProbe.HTTPGet).NotTo(BeNil())
+		g.Expect(container.LivenessProbe.HTTPGet.Path).To(Equal("/metrics"))
+		g.Expect(container.ReadinessProbe.HTTPGet.Path).To(Equal("/metrics"))
+		g.Expect(container.LivenessProbe.HTTPGet.Port.String()).To(Equal("monitoring"))
+		g.Expect(container.ReadinessProbe.HTTPGet.Port.String()).To(Equal("monitoring"))
+		checked[name] = true
+	}
+
+	for _, obj := range objects {
+		switch obj.GetKind() {
+		case "DaemonSet":
+			if obj.GetName() != speakerDaemonSet {
+				continue
+			}
+			speaker := appsv1.DaemonSet{}
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &speaker)
+			g.Expect(err).To(BeNil())
+			for _, container := range speaker.Spec.Template.Spec.Containers {
+				if container.Name == "speaker" {
+					checkContainer(container, speakerDaemonSet)
+				}
+			}
+		case "Deployment":
+			if obj.GetName() != controllerDeployment {
+				continue
+			}
+			controller := appsv1.Deployment{}
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &controller)
+			g.Expect(err).To(BeNil())
+			for _, container := range controller.Spec.Template.Spec.Containers {
+				if container.Name == "controller" {
+					checkContainer(container, controllerDeployment)
+				}
+			}
+		}
+	}
+
+	g.Expect(checked).To(Equal(map[string]bool{speakerDaemonSet: true, controllerDeployment: true}))
 }
 
 func TestParseOCPSecureMetrics(t *testing.T) {

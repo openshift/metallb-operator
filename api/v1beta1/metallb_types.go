@@ -106,10 +106,11 @@ type MetalLBSpec struct {
 	// L2-advertised services. When unset or set to 0, periodic announcements
 	// are disabled and only the announcements triggered by service events are
 	// sent. The value must be a valid Go duration string (e.g. "30s", "1m")
-	// and, when non-zero, must be at least 1s to avoid flooding the network
-	// with announcements.
+	// and, when non-zero, must be a whole number of seconds between 1s and
+	// 2147483647s to match the speaker flag.
 	// +optional
-	// +kubebuilder:validation:XValidation:rule="duration(self) == duration('0s') || duration(self) >= duration('1s')",message="speakerGratuitousARPInterval must be 0 or at least 1s"
+	// +kubebuilder:validation:XValidation:rule="duration(self) == duration('0s') || (duration(self).getSeconds() >= 1 && duration(self).getSeconds() <= 2147483647)",message="speakerGratuitousARPInterval must be 0 or between 1s and 2147483647s"
+	// +kubebuilder:validation:XValidation:rule="duration(self).getMilliseconds() % 1000 == 0",message="speakerGratuitousARPInterval must contain a whole number of seconds"
 	SpeakerGratuitousARPInterval *metav1.Duration `json:"speakerGratuitousARPInterval,omitempty"`
 }
 
