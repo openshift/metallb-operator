@@ -7,13 +7,6 @@ METALLB_MANIFESTS_URL="https://raw.githubusercontent.com/metallb/metallb/${METAL
 HELM_MANIFESTS_DIR="bindata/deployment/helm"
 METALLB_HELM_DIR=${HELM_MANIFESTS_DIR}/metallb
 FRRK8S_HELM_DIR=${HELM_MANIFESTS_DIR}/frr-k8s
-METALLB_4_22_REF="ae2e4bcf6a23630cd2f9b9ee3b880390be257d58"
-METALLB_4_22_GARP_PATCH="$(pwd)/hack/patches/metallb-4.22-gratuitous-arp.patch"
-
-if [[ "${METALLB_COMMIT_ID}" != "${METALLB_4_22_REF}" ]]; then
-    echo "refusing to apply the 4.22 gratuitous ARP chart patch to MetalLB ref ${METALLB_COMMIT_ID}; expected ${METALLB_4_22_REF}" >&2
-    exit 1
-fi
 
 if ! command -v yq &> /dev/null
 then
@@ -27,11 +20,6 @@ curl ${METALLB_MANIFESTS_URL} -o _cache/${METALLB_MANIFESTS_FILE}
 yq e '. | select(.kind == "Role" or .kind == "ClusterRole" or .kind == "RoleBinding" or .kind == "ClusterRoleBinding" or .kind == "ServiceAccount")' _cache/${METALLB_MANIFESTS_FILE} > config/metallb_rbac/metallb.yaml
 
 fetch_metallb
-
-if ! patch --directory="${METALLB_PATH}" --strip=1 --fuzz=0 --batch --forward --input="${METALLB_4_22_GARP_PATCH}"; then
-    echo "failed to apply ${METALLB_4_22_GARP_PATCH} to MetalLB ref ${METALLB_COMMIT_ID}" >&2
-    exit 1
-fi
 
 FRRK8S_VERSION=v$(yq e '.dependencies[] | select(.name == "frr-k8s") | .version'  ${METALLB_PATH}/charts/metallb/Chart.yaml)
 
