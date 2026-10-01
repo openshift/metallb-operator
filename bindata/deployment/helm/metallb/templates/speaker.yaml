@@ -271,6 +271,9 @@ spec:
         {{- if .Values.speaker.wanConfig }}
         - --ml-wan-config
         {{- end }}
+        {{- if and .Values.speaker.gratuitousARPInterval (ne (toString .Values.speaker.gratuitousARPInterval) "0") (ne (toString .Values.speaker.gratuitousARPInterval) "0s") }}
+        - --gratuitous-arp-interval={{ .Values.speaker.gratuitousARPInterval }}
+        {{- end }}
         {{- if .Values.speaker.ignoreExcludeLB}}
         - --ignore-exclude-lb
         {{- end }}
@@ -279,6 +282,9 @@ spec:
         {{- end }}
         {{- if .Values.frrk8s.external }}
         - --frrk8s-namespace={{ required "namespace is required when frrk8s is external" .Values.frrk8s.namespace }}
+        {{- if .Values.frrk8s.secretPassthrough }}
+        - --frrk8s-secret-passthrough
+        {{- end }}
         {{- end }}
         env:
         - name: METALLB_NODE_NAME

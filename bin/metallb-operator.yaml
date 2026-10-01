@@ -635,14 +635,14 @@ spec:
                 type: string
               ebgpMultiHop:
                 description: To set if the BGPPeer is multi-hops away. Needed for
-                  FRR mode only.
+                  FRR-based modes (FRR-K8s, FRR) only.
                 type: boolean
               enableGracefulRestart:
                 description: |-
                   EnableGracefulRestart allows BGP peer to continue to forward data packets
                   along known routes while the routing protocol information is being
                   restored. This field is immutable because it requires restart of the BGP
-                  session. Supported for FRR mode only.
+                  session. Supported for FRR-based modes (FRR-K8s, FRR) only.
                 type: boolean
                 x-kubernetes-validations:
                 - message: EnableGracefulRestart cannot be changed after creation
@@ -4235,6 +4235,24 @@ spec:
                     description: Define container runtime configuration class
                     type: string
                 type: object
+              speakerGratuitousARPInterval:
+                description: |-
+                  SpeakerGratuitousARPInterval is the interval at which the MetalLB speaker
+                  sends periodic gratuitous ARP / unsolicited NDP announcements for
+                  L2-advertised services. When unset or set to 0, periodic announcements
+                  are disabled and only the announcements triggered by service events are
+                  sent. The value must be a valid Go duration string (e.g. "30s", "1m")
+                  and, when non-zero, must be a whole number of seconds between 1s and
+                  2147483647s to match the speaker flag.
+                type: string
+                x-kubernetes-validations:
+                - message: speakerGratuitousARPInterval must be 0 or between 1s and
+                    2147483647s
+                  rule: duration(self) == duration('0s') || (duration(self).getSeconds()
+                    >= 1 && duration(self).getSeconds() <= 2147483647)
+                - message: speakerGratuitousARPInterval must contain a whole number
+                    of seconds
+                  rule: duration(self).getMilliseconds() % 1000 == 0
               speakerTolerations:
                 description: |-
                   tolerations is a list of tolerations applied to MetalLB speaker

@@ -17,6 +17,9 @@ limitations under the License.
 package helm
 
 import (
+	"strconv"
+	"time"
+
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
 	"github.com/metallb/metallb-operator/pkg/params"
 	"helm.sh/helm/v3/pkg/action"
@@ -326,6 +329,9 @@ func speakerValues(envConfig params.EnvConfig, crdConfig *metallbv1beta1.MetalLB
 		if otherConfigs.Annotations != nil {
 			speakerValueMap["podAnnotations"] = toInterfaceMap(otherConfigs.Annotations)
 		}
+	}
+	if interval := crdConfig.Spec.SpeakerGratuitousARPInterval; interval != nil && interval.Duration >= time.Second && interval.Duration%time.Second == 0 {
+		speakerValueMap["gratuitousARPInterval"] = strconv.FormatInt(int64(interval.Duration/time.Second), 10)
 	}
 	return speakerValueMap
 }
