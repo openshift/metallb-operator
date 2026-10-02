@@ -17,6 +17,10 @@ limitations under the License.
 package helm
 
 import (
+	"math"
+	"strconv"
+	"time"
+
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
 	"github.com/metallb/metallb-operator/pkg/params"
 	"helm.sh/helm/v3/pkg/action"
@@ -30,6 +34,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+const maxGratuitousARPIntervalSeconds = int64(math.MaxInt32)
 
 // MetalLBChart metallb chart struct containing references which helps to
 // to retrieve manifests from chart after patching given custom values.
@@ -329,6 +335,9 @@ func speakerValues(envConfig params.EnvConfig, crdConfig *metallbv1beta1.MetalLB
 		if otherConfigs.Annotations != nil {
 			speakerValueMap["podAnnotations"] = toInterfaceMap(otherConfigs.Annotations)
 		}
+	}
+	if interval := crdConfig.Spec.SpeakerGratuitousARPInterval; interval != nil && interval.Duration >= time.Second && interval.Duration <= time.Duration(maxGratuitousARPIntervalSeconds)*time.Second && interval.Duration%time.Second == 0 {
+		speakerValueMap["gratuitousARPInterval"] = strconv.FormatInt(int64(interval.Duration/time.Second), 10)
 	}
 	return speakerValueMap
 }
