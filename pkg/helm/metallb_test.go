@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
@@ -281,6 +282,125 @@ func TestSecretPassthrough(t *testing.T) {
 			g.Expect(speakerFound).To(BeTrue())
 		})
 	}
+}
+
+func TestSpeakerGratuitousARPInterval(t *testing.T) {
+	tests := []struct {
+		name      string
+		interval  *metav1.Duration
+		expectArg string
+		expectSet bool
+	}{
+		{"unset", nil, "", false},
+		{"zero", &metav1.Duration{}, "", false},
+		{"negative", &metav1.Duration{Duration: -time.Second}, "", false},
+		{"fractional", &metav1.Duration{Duration: 1500 * time.Millisecond}, "", false},
+		{"minimum seconds", &metav1.Duration{Duration: time.Second}, "--gratuitous-arp-interval=1", true},
+		{"seconds", &metav1.Duration{Duration: 5 * time.Second}, "--gratuitous-arp-interval=5", true},
+		{"minutes", &metav1.Duration{Duration: time.Minute}, "--gratuitous-arp-interval=60", true},
+		{"maximum seconds", &metav1.Duration{Duration: time.Duration(maxGratuitousARPIntervalSeconds) * time.Second}, "--gratuitous-arp-interval=2147483647", true},
+		{"above maximum", &metav1.Duration{Duration: time.Duration(maxGratuitousARPIntervalSeconds+1) * time.Second}, "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			chart, err := NewMetalLBChart(metalLBChartPath, metalLBChartName, MetalLBTestNameSpace, nil)
+			g.Expect(err).To(BeNil())
+
+			metallb := &metallbv1beta1.MetalLB{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "metallb",
+					Namespace: MetalLBTestNameSpace,
+				},
+				Spec: metallbv1beta1.MetalLBSpec{
+					SpeakerGratuitousARPInterval: tt.interval,
+				},
+			}
+
+			objs, err := chart.Objects(defaultEnvConfig, metallb)
+			g.Expect(err).To(BeNil())
+			var speakerFound bool
+			for _, obj := range objs {
+				if obj.GetKind() == "DaemonSet" && obj.GetName() == speakerDaemonSet {
+					speaker := appsv1.DaemonSet{}
+					err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &speaker)
+					g.Expect(err).To(BeNil())
+					for _, container := range speaker.Spec.Template.Spec.Containers {
+						if container.Name == "speaker" {
+							if tt.expectSet {
+								g.Expect(container.Args).To(ContainElement(tt.expectArg))
+							} else {
+								for _, a := range container.Args {
+									g.Expect(a).NotTo(HavePrefix("--gratuitous-arp-interval"))
+								}
+							}
+							speakerFound = true
+						}
+					}
+				}
+			}
+			g.Expect(speakerFound).To(BeTrue())
+		})
+	}
+}
+
+func TestMetalLBChartUses4_22HealthProbes(t *testing.T) {
+	g := NewGomegaWithT(t)
+	chart, err := NewMetalLBChart(metalLBChartPath, metalLBChartName, MetalLBTestNameSpace, nil)
+	g.Expect(err).To(BeNil())
+
+	metallb := &metallbv1beta1.MetalLB{
+		ObjectMeta: metav1.ObjectMeta{Name: "metallb", Namespace: MetalLBTestNameSpace},
+	}
+	objects, err := chart.Objects(defaultEnvConfig, metallb)
+	g.Expect(err).To(BeNil())
+
+	checked := map[string]bool{}
+	checkContainer := func(container v1.Container, name string) {
+		for _, arg := range container.Args {
+			g.Expect(arg).NotTo(HavePrefix("--health-probe-port"))
+		}
+		g.Expect(container.LivenessProbe).NotTo(BeNil())
+		g.Expect(container.ReadinessProbe).NotTo(BeNil())
+		g.Expect(container.LivenessProbe.HTTPGet).NotTo(BeNil())
+		g.Expect(container.ReadinessProbe.HTTPGet).NotTo(BeNil())
+		g.Expect(container.LivenessProbe.HTTPGet.Path).To(Equal("/metrics"))
+		g.Expect(container.ReadinessProbe.HTTPGet.Path).To(Equal("/metrics"))
+		g.Expect(container.LivenessProbe.HTTPGet.Port.String()).To(Equal("monitoring"))
+		g.Expect(container.ReadinessProbe.HTTPGet.Port.String()).To(Equal("monitoring"))
+		checked[name] = true
+	}
+
+	for _, obj := range objects {
+		switch obj.GetKind() {
+		case "DaemonSet":
+			if obj.GetName() != speakerDaemonSet {
+				continue
+			}
+			speaker := appsv1.DaemonSet{}
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &speaker)
+			g.Expect(err).To(BeNil())
+			for _, container := range speaker.Spec.Template.Spec.Containers {
+				if container.Name == "speaker" {
+					checkContainer(container, speakerDaemonSet)
+				}
+			}
+		case "Deployment":
+			if obj.GetName() != controllerDeployment {
+				continue
+			}
+			controller := appsv1.Deployment{}
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &controller)
+			g.Expect(err).To(BeNil())
+			for _, container := range controller.Spec.Template.Spec.Containers {
+				if container.Name == "controller" {
+					checkContainer(container, controllerDeployment)
+				}
+			}
+		}
+	}
+
+	g.Expect(checked).To(Equal(map[string]bool{speakerDaemonSet: true, controllerDeployment: true}))
 }
 
 func TestParseOCPSecureMetrics(t *testing.T) {
