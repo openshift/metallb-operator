@@ -249,6 +249,9 @@ spec:
         {{- if .Values.speaker.wanConfig }}
         - --ml-wan-config
         {{- end }}
+        {{- if and .Values.speaker.gratuitousARPInterval (ne (toString .Values.speaker.gratuitousARPInterval) "0") (ne (toString .Values.speaker.gratuitousARPInterval) "0s") }}
+        - --gratuitous-arp-interval={{ .Values.speaker.gratuitousARPInterval }}
+        {{- end }}
         {{- if .Values.speaker.ignoreExcludeLB}}
         - --ignore-exclude-lb
         {{- end }}
