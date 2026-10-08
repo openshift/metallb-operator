@@ -271,6 +271,8 @@ speaker:
     enabled: true
   # ignore the exclude-from-external-loadbalancer label
   ignoreExcludeLB: false
+  # -- Interval in seconds for periodic gratuitous ARP/NDP announcements. Unset or 0 (default) disables periodic announcements.
+  gratuitousARPInterval: null
 
   image:
     repository: quay.io/metallb/speaker
