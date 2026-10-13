@@ -378,6 +378,9 @@ frrk8s:
   enabled: false
   external: false
   namespace: ""
+  # -- Pass BGP secret references to frr-k8s without resolving them. The secret must
+  # exist in the frr-k8s namespace. Only used when external=true.
+  secretPassthrough: false
 
 # networkpolicies
 networkpolicies:

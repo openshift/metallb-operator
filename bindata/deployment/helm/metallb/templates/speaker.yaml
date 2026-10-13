@@ -283,6 +283,9 @@ spec:
         {{- if .Values.frrk8s.external }}
         - --frrk8s-namespace={{ required "namespace is required when frrk8s is external" .Values.frrk8s.namespace }}
         {{- end }}
+        {{- if .Values.frrk8s.secretPassthrough }}
+        - --frrk8s-secret-passthrough
+        {{- end }}
         env:
         - name: METALLB_NODE_NAME
           valueFrom:
