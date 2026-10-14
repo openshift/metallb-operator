@@ -21,6 +21,9 @@
         },
         "template": {
             "metadata": {
+                "annotations": {
+                    "target.workload.openshift.io/management": "{\"effect\": \"PreferredDuringScheduling\"}"
+                },
                 "labels": {
                     "app": "frr-k8s",
                     "app.kubernetes.io/component": "frr-k8s"

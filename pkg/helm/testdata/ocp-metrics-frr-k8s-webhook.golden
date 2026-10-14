@@ -21,7 +21,8 @@
         "template": {
             "metadata": {
                 "annotations": {
-                    "kubectl.kubernetes.io/default-container": "frr-k8s-statuscleaner"
+                    "kubectl.kubernetes.io/default-container": "frr-k8s-statuscleaner",
+                    "target.workload.openshift.io/management": "{\"effect\": \"PreferredDuringScheduling\"}"
                 },
                 "labels": {
                     "component": "statuscleaner"
