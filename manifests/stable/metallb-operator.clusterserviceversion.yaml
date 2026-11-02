@@ -957,7 +957,7 @@ spec:
                           fieldRef:
                             fieldPath: metadata.name
                       - name: METALLB_BGP_TYPE
-                        value: frr
+                        value: frr-k8s
                       - name: TLS_CIPHER_SUITES
                         valueFrom:
                           configMapKeyRef:

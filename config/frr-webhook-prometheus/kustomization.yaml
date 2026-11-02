@@ -6,4 +6,4 @@ resources:
   - prometheus_sa.yaml
 namespace: metallb-system
 patches:
-  - path: bgpTypeFRR.yaml
+  - path: bgpTypeFRRK8s.yaml
