@@ -64,6 +64,7 @@ Kubernetes: `>= 1.19.0-0`
 | frrk8s.enabled | bool | `false` |  |
 | frrk8s.external | bool | `false` |  |
 | frrk8s.namespace | string | `""` |  |
+| frrk8s.secretPassthrough | bool | `false` | Pass BGP secret references to frr-k8s without resolving them. The secret must exist in the frr-k8s namespace. Only used when external=true. |
 | fullnameOverride | string | `""` |  |
 | imagePullSecrets | list | `[]` |  |
 | loadBalancerClass | string | `""` |  |
