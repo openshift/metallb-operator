@@ -54,6 +54,13 @@ func parseManifest(manifest string) ([]*unstructured.Unstructured, error) {
 }
 
 func setOcpMonitorFields(obj *unstructured.Unstructured) error {
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["openshift.io/user-monitoring"] = "false"
+	obj.SetLabels(labels)
+
 	eps, found, err := unstructured.NestedSlice(obj.Object, "spec", "endpoints")
 	if !found {
 		return errors.New("failed to find endpoints in ServiceMonitor " + obj.GetName())

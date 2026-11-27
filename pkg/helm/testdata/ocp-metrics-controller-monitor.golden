@@ -9,7 +9,8 @@
             "app": "metallb",
             "app.kubernetes.io/managed-by": "Helm",
             "app.kubernetes.io/version": "v0.0.0",
-            "helm.sh/chart": "metallb-0.0.0"
+            "helm.sh/chart": "metallb-0.0.0",
+            "openshift.io/user-monitoring": "false"
         },
         "name": "controller-monitor",
         "namespace": "metallb-test-namespace"
